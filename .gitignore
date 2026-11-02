@@ -1,0 +1,9 @@
+# Composer dependencies, installed by the publish workflow from the committed lock file.
+/vendor/
+
+# Builder output. The published tree comes from a scratch directory outside the checkout,
+# so nothing here is ever committed.
+/build/
+
+# Builder cache.
+/.cache/

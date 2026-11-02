@@ -1,0 +1,18 @@
+{
+    "$schema": "https://raw.githubusercontent.com/webinertia/asciidoc-php-multi-repo/1.0.0-alpha.1/specs/001-multi-repo-docs-site/contracts/site.schema.json",
+    "schemaVersion": 1,
+    "site": {
+        "name": "Webware Documentation",
+        "baseUrl": "https://docs.webinertia.net/",
+        "hostname": "docs.webinertia.net"
+    },
+    "organization": {
+        "name": "webinertia",
+        "propertyName": "doc-target",
+        "onboardValue": "true",
+        "tokenEnvVar": "DOC_DISCOVERY_TOKEN"
+    },
+    "source": {
+        "directory": "docs"
+    }
+}
