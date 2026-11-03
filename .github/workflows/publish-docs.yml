@@ -1,0 +1,545 @@
+# Publish the Webware documentation site to the gh-pages branch.
+#
+# Authority: specs/003-docs-site-publish in webinertia/asciidoc-php-multi-repo
+# (spec.md FR-001 to FR-051, plan.md decisions 1 to 10, contracts/dispatch.md).
+#
+# Two readings of that spec are recorded here because the spec contradicts itself
+# and is a merged record that must not be edited:
+#
+#   1. FR-032 (exit 1 publishes, then fails) versus FR-035 (any non-zero exit leaves
+#      gh-pages untouched). plan.md decision 7 resolves this in favour of FR-032, so
+#      exit 1 publishes and the job then fails. FR-035 applies to every other
+#      non-zero exit.
+#   2. FR-037 (totals by status in every summary) versus FR-036 (report attached
+#      only when produced). Exit 2 and exit 3 can happen before any report exists,
+#      so the summary states that no report was produced instead of inventing totals.
+
+name: Publish docs
+
+"on":
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+    inputs:
+      note:
+        description: Reason for this manual publish, recorded in the run summary.
+        required: false
+        type: string
+      force_republish:
+        description: Commit and push even when the built tree matches gh-pages.
+        required: false
+        type: boolean
+        default: false
+  repository_dispatch:
+    types:
+      - docs-publish
+
+# A publish is never interrupted by a later one. Requests wait instead, which is
+# what contracts/dispatch.md promises consumers.
+concurrency:
+  group: docs-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      # Literal values only. The runner context is not available in a job level
+      # env block, so runner paths are written inline as ${RUNNER_TEMP} instead.
+      SITE_CONFIG: site.json
+      PUBLISH_BRANCH: gh-pages
+      SOURCE_BRANCH: master
+    steps:
+      - name: Check out the site configuration
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      # T010. Fails before any build when the configuration or the discovery
+      # credential is not usable. A failure here usually means the repository
+      # secret is unset or a repository is missing the doc-target property.
+      - name: Preflight
+        id: preflight
+        env:
+          DOC_DISCOVERY_TOKEN: ${{ secrets.DOC_DISCOVERY_TOKEN }}
+        run: |
+          set -uo pipefail
+
+          if [ ! -f "$SITE_CONFIG" ]; then
+            echo "::error title=Preflight failed::$SITE_CONFIG is missing from the repository."
+            exit 1
+          fi
+
+          if ! jq -e . "$SITE_CONFIG" >/dev/null 2>&1; then
+            echo "::error title=Preflight failed::$SITE_CONFIG is not valid JSON."
+            exit 1
+          fi
+
+          token_var=$(jq -r 'if (.organization.tokenEnvVar | type) == "string" then .organization.tokenEnvVar else empty end' "$SITE_CONFIG")
+          if [ -z "$token_var" ]; then
+            echo "::error title=Preflight failed::$SITE_CONFIG does not set organization.tokenEnvVar. It must name the repository secret DOC_DISCOVERY_TOKEN."
+            exit 1
+          fi
+
+          if [ "$token_var" != "DOC_DISCOVERY_TOKEN" ]; then
+            echo "::error title=Preflight failed::$SITE_CONFIG names the discovery credential '$token_var'. This workflow supplies only the repository secret DOC_DISCOVERY_TOKEN, so organization.tokenEnvVar must be DOC_DISCOVERY_TOKEN."
+            exit 1
+          fi
+
+          if [ -z "${DOC_DISCOVERY_TOKEN:-}" ]; then
+            echo "::error title=Preflight failed::The repository secret DOC_DISCOVERY_TOKEN is empty. Set the secret, and confirm the doc-target property is true on every repository that should appear on the site."
+            exit 1
+          fi
+
+          echo "Preflight passed. Discovery uses the DOC_DISCOVERY_TOKEN secret and the doc-target property."
+
+      # T011. PHP 8.5, the version the committed composer.lock resolves against.
+      - name: Install the PHP runtime
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: curl, json, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Install the builder
+        run: composer install --no-interaction --no-progress --prefer-dist --no-dev
+
+      # T013. The builder's exit code decides the job's conclusion later, so this
+      # step records it and always succeeds. Output and report both live outside
+      # the checkout, and the report sits outside the output directory so it can
+      # never be copied onto gh-pages.
+      - name: Build the site
+        id: build
+        run: |
+          set +e
+          php vendor/bin/asciidoc-php-multi-repo build \
+            --config "$SITE_CONFIG" \
+            --output "$RUNNER_TEMP/site" \
+            --report "$RUNNER_TEMP/report.json" \
+            --cache "$RUNNER_TEMP/builder-cache" \
+            2>&1 | tee "$RUNNER_TEMP/build.log"
+          status=${PIPESTATUS[0]}
+          set -e
+
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          echo "The builder exited with $status."
+          exit 0
+
+      # T012. The run mode comes from this run's own ref and nothing else. The
+      # dispatch payload's ref is recorded only, because contracts/dispatch.md says
+      # the site builds the default branch of every discovered repository and the
+      # documented consumer sends github.sha.
+      - name: Determine the run mode
+        id: mode
+        run: |
+          set -uo pipefail
+
+          case "$GITHUB_EVENT_NAME" in
+            schedule)            trigger="the nightly schedule" ;;
+            workflow_dispatch)   trigger="a manual dispatch" ;;
+            repository_dispatch) trigger="a docs-publish dispatch" ;;
+            *)                   trigger="$GITHUB_EVENT_NAME" ;;
+          esac
+
+          if [ "$GITHUB_REF" = "refs/heads/$SOURCE_BRANCH" ]; then
+            mode=publish
+          else
+            mode=dry-run
+          fi
+
+          {
+            echo "mode=$mode"
+            echo "trigger=$trigger"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Ref $GITHUB_REF, trigger $trigger, mode $mode."
+
+      # T014 and T015. Both guards run before anything touches gh-pages, so a
+      # guard failure publishes nothing.
+      - name: Check the publishing guards
+        id: guards
+        if: steps.build.outputs.exit_code == '0' || steps.build.outputs.exit_code == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -uo pipefail
+          site="$RUNNER_TEMP/site"
+
+          if [ ! -d "$site" ]; then
+            echo "::error title=Guard failed::The builder reported success but produced no output tree."
+            exit 1
+          fi
+
+          if [ ! -f "$site/CNAME" ]; then
+            echo "::error title=Guard failed::The built site has no CNAME file. Publishing it would drop the custom domain."
+            exit 1
+          fi
+
+          built_cname=$(tr -d '\r\n' < "$site/CNAME")
+
+          # The contents API wraps base64 content in newlines, which base64 -d
+          # rejects, so they are stripped before decoding.
+          live_cname=$(gh api "repos/$GITHUB_REPOSITORY/contents/CNAME?ref=$PUBLISH_BRANCH" --jq .content 2>/dev/null | tr -d '\n\r' | base64 -d 2>/dev/null || true)
+          if [ -z "$live_cname" ]; then
+            git fetch origin "$PUBLISH_BRANCH" --depth 1 >/dev/null 2>&1 || true
+            live_cname=$(git show "origin/$PUBLISH_BRANCH:CNAME" 2>/dev/null | tr -d '\r\n' || true)
+          fi
+
+          if [ -z "$live_cname" ]; then
+            echo "::warning title=Guard comparison skipped::No CNAME could be read from $PUBLISH_BRANCH, so the built value '$built_cname' was not compared."
+          elif [ "$built_cname" != "$live_cname" ]; then
+            echo "::error title=Guard failed::The built CNAME '$built_cname' differs from the live $PUBLISH_BRANCH value '$live_cname'."
+            exit 1
+          else
+            echo "CNAME matches the live value '$live_cname'."
+          fi
+
+          if [ ! -f "$site/.nojekyll" ]; then
+            echo "::error title=Guard failed::The built site has no .nojekyll file. GitHub Pages would run Jekyll and drop underscore paths."
+            exit 1
+          fi
+
+          echo "Both publishing guards passed."
+
+      # T016, T017, T018, T019. Replaces the gh-pages tree wholesale, commits at
+      # most once, and never forces the push.
+      - name: Publish to the docs branch
+        id: publish
+        if: steps.build.outputs.exit_code == '0' || steps.build.outputs.exit_code == '1'
+        env:
+          MODE: ${{ steps.mode.outputs.mode }}
+          TRIGGER: ${{ steps.mode.outputs.trigger }}
+          FORCE_REPUBLISH: ${{ inputs.force_republish }}
+        run: |
+          set -euo pipefail
+
+          site="$RUNNER_TEMP/site"
+          worktree="$RUNNER_TEMP/gh-pages"
+
+          if [ ! -d "$site" ]; then
+            echo "::error title=Publish failed::The build produced no output tree."
+            exit 1
+          fi
+
+          cleanup() {
+            git worktree remove --force "$worktree" >/dev/null 2>&1 || rm -rf "$worktree"
+          }
+          trap cleanup EXIT
+
+          # Runners carry no global identity, so a commit fails without this.
+          # Linked worktrees share the repository config, so setting it here covers
+          # the scratch worktree as well.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # A missing publishing branch is a legitimate state, not an error.
+          git fetch origin "$PUBLISH_BRANCH" --depth 1 >/dev/null 2>&1 || true
+
+          git worktree add --detach "$worktree" HEAD >/dev/null
+          if git rev-parse --verify --quiet "origin/$PUBLISH_BRANCH" >/dev/null; then
+            git -C "$worktree" checkout -B "$PUBLISH_BRANCH" "origin/$PUBLISH_BRANCH" >/dev/null 2>&1
+          else
+            git -C "$worktree" checkout --orphan "$PUBLISH_BRANCH" >/dev/null 2>&1
+          fi
+
+          # Wholesale replacement: every path except .git goes, the built tree
+          # arrives in full.
+          find "$worktree" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "$site/." "$worktree/"
+          git -C "$worktree" add -A
+
+          forced=false
+          if [ "${FORCE_REPUBLISH:-false}" = "true" ]; then
+            forced=true
+          fi
+
+          if git -C "$worktree" diff --cached --quiet && [ "$forced" != "true" ]; then
+            echo "mode=no-op" >> "$GITHUB_OUTPUT"
+            echo "The built tree matches $PUBLISH_BRANCH, so nothing was committed and nothing was pushed."
+            exit 0
+          fi
+
+          changed=$(git -C "$worktree" diff --cached --name-only | awk -F/ 'NF { print $1 }' | sort -u | paste -sd ',' - | sed 's/,/, /g')
+          if [ -z "$changed" ]; then
+            changed="none"
+          fi
+
+          # No run id, run number, timestamp, runner name or other per-run value:
+          # the message is a function of the trigger and the tree only.
+          subject="Publish the docs site from $TRIGGER"
+          message="$subject"$'\n\n'"Changed top-level paths: $changed"
+
+          if [ "$forced" = "true" ]; then
+            git -C "$worktree" commit --quiet --allow-empty -m "$message"
+          else
+            git -C "$worktree" commit --quiet -m "$message"
+          fi
+
+          sha=$(git -C "$worktree" rev-parse HEAD)
+
+          {
+            echo "sha=$sha"
+            echo "changed=$changed"
+            echo "forced=$forced"
+          } >> "$GITHUB_OUTPUT"
+
+          if [ "${MODE:-dry-run}" != "publish" ]; then
+            echo "mode=dry-run" >> "$GITHUB_OUTPUT"
+            echo "Dry run on $GITHUB_REF. Would have committed $sha with: $subject (changed top-level paths: $changed). Nothing was pushed."
+            exit 0
+          fi
+
+          git -C "$worktree" push origin "HEAD:refs/heads/$PUBLISH_BRANCH"
+          echo "mode=published" >> "$GITHUB_OUTPUT"
+          echo "Published $sha to $PUBLISH_BRANCH."
+
+      # T021. The report is absent when the configuration or discovery failed, and
+      # that is a clean skip rather than a failure.
+      - name: Upload the build report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-report
+          path: ${{ runner.temp }}/report.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      # T022, T024, T029. Every run gets a summary, including a run that failed
+      # before a report existed.
+      - name: Write the run summary
+        id: summary
+        if: always()
+        env:
+          BUILD_EXIT_CODE: ${{ steps.build.outputs.exit_code }}
+          TRIGGER: ${{ steps.mode.outputs.trigger }}
+          RUN_MODE: ${{ steps.mode.outputs.mode }}
+          PUBLISH_RESULT: ${{ steps.publish.outputs.mode }}
+          PUBLISHED_SHA: ${{ steps.publish.outputs.sha }}
+          PUBLISH_CHANGED: ${{ steps.publish.outputs.changed }}
+          PUBLISH_FORCED: ${{ steps.publish.outputs.forced }}
+          MANUAL_NOTE: ${{ inputs.note }}
+          DISPATCH_PAYLOAD: ${{ toJSON(github.event.client_payload) }}
+        run: |
+          set -uo pipefail
+
+          report="$RUNNER_TEMP/report.json"
+          log="$RUNNER_TEMP/build.log"
+          summary="$GITHUB_STEP_SUMMARY"
+
+          {
+            echo "## Docs publish"
+            echo
+            echo "| Item | Value |"
+            echo "| --- | --- |"
+            echo "| Trigger | ${TRIGGER:-$GITHUB_EVENT_NAME} |"
+            echo "| Run ref | $GITHUB_REF |"
+            echo "| Run mode | ${RUN_MODE:-unknown} |"
+            if [ -n "${BUILD_EXIT_CODE:-}" ]; then
+              echo "| Builder exit code | $BUILD_EXIT_CODE |"
+            else
+              echo "| Builder exit code | not produced, the build step did not run |"
+            fi
+            echo
+          } >> "$summary"
+
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ -n "${MANUAL_NOTE:-}" ]; then
+            {
+              echo "Manual dispatch note: $MANUAL_NOTE"
+              echo
+            } >> "$summary"
+          fi
+
+          # FR-037 asks for totals every run; FR-036 only attaches a report when one
+          # exists. The gap is stated rather than filled with invented zeroes.
+          if [ -f "$report" ]; then
+            {
+              echo "### Totals by project status"
+              echo
+              echo "| Status | Projects |"
+              echo "| --- | --- |"
+              jq -r '.totals | "| ok | \(.ok) |\n| partial | \(.partial) |\n| failed | \(.failed) |\n| skipped | \(.skipped) |"' "$report"
+              echo
+              jq -r '.totals | "Pages built: \(.pages), rendered: \(.renderedPages)."' "$report"
+              echo
+            } >> "$summary"
+
+            not_ok=$(jq -r '[.projects[] | select(.status != "ok")] | length' "$report")
+            if [ "${not_ok:-0}" -gt 0 ]; then
+              {
+                echo "### Projects not ok"
+                echo
+                echo "| Repository | Slug | Status | Reason codes |"
+                echo "| --- | --- | --- | --- |"
+                jq -r '.projects[] | select(.status != "ok") | "| \(.repository) | \(.slug) | \(.status) | \([((.errors // [])[].reasonCode)] | unique | join(", ")) |"' "$report"
+                echo
+              } >> "$summary"
+            else
+              {
+                echo "Every discovered project reported status ok."
+                echo
+              } >> "$summary"
+            fi
+          else
+            case "${BUILD_EXIT_CODE:-}" in
+              2) cause="a configuration error" ;;
+              3) cause="a discovery error" ;;
+              4) cause="an internal error" ;;
+              *) cause="a step that ran before the build" ;;
+            esac
+            {
+              echo "### Totals by project status"
+              echo
+              echo "No report was produced, so totals by status are unavailable. The builder writes its report only after the configuration loads and discovery succeeds, and this run stopped at $cause."
+              echo
+            } >> "$summary"
+          fi
+
+          if [ -f "$log" ]; then
+            first_error=$(grep -m1 -E '^error: ' "$log" || true)
+            if [ -n "$first_error" ]; then
+              {
+                echo "### First error reported by the builder"
+                echo
+                echo "$first_error"
+                echo
+              } >> "$summary"
+            fi
+          fi
+
+          {
+            echo "### Publication"
+            echo
+          } >> "$summary"
+
+          case "${PUBLISH_RESULT:-}" in
+            published)
+              {
+                echo "Published commit $PUBLISHED_SHA to $PUBLISH_BRANCH."
+                echo "Changed top-level paths: $PUBLISH_CHANGED."
+                if [ "${PUBLISH_FORCED:-}" = "true" ]; then
+                  echo "The commit came from a forced republish, which commits even when the built tree is unchanged."
+                fi
+              } >> "$summary"
+              ;;
+            no-op)
+              echo "Nothing was published. The built tree matches $PUBLISH_BRANCH, so no commit was made and nothing was pushed." >> "$summary"
+              ;;
+            dry-run)
+              {
+                echo "Nothing was published. This run built, guarded and compared the tree, then stopped before the push because $GITHUB_REF is not refs/heads/$SOURCE_BRANCH."
+                echo "It would have committed $PUBLISHED_SHA to $PUBLISH_BRANCH, with changed top-level paths: $PUBLISH_CHANGED."
+              } >> "$summary"
+              ;;
+            *)
+              if [ -n "${BUILD_EXIT_CODE:-}" ] && [ "$BUILD_EXIT_CODE" != "0" ]; then
+                echo "Nothing was published. The builder exited with $BUILD_EXIT_CODE, so the publish step did not run." >> "$summary"
+              else
+                echo "Nothing was published." >> "$summary"
+              fi
+              ;;
+          esac
+          echo >> "$summary"
+
+          # T024 and T029. The payload is advisory: it is recorded, it is never
+          # used to select projects, and it never changes the run mode. Unknown
+          # fields are ignored; a known field of the wrong type is recorded as
+          # unusable rather than failing the run.
+          if [ "$GITHUB_EVENT_NAME" = "repository_dispatch" ]; then
+            payload="${DISPATCH_PAYLOAD:-null}"
+            field_type() {
+              printf '%s' "$payload" | jq -r --arg f "$1" 'if type == "object" and has($f) then (.[$f] | type) else "absent" end' 2>/dev/null || echo "unreadable"
+            }
+            field_string() {
+              printf '%s' "$payload" | jq -r --arg f "$1" 'if type == "object" and (.[$f] | type) == "string" then .[$f] else empty end' 2>/dev/null || true
+            }
+
+            {
+              echo "### Dispatch correlation"
+              echo
+            } >> "$summary"
+
+            repo_type=$(field_type repository)
+            repo_value=$(field_string repository)
+            if [ "$repo_type" = "string" ]; then
+              repo_name="${repo_value##*/}"
+              if [ -f "$report" ]; then
+                matched=$(jq -r --arg n "$repo_name" '[.projects[] | select((.repository | ascii_downcase) == ($n | ascii_downcase))] | length' "$report")
+                if [ "${matched:-0}" -gt 0 ]; then
+                  echo "The dispatching repository $repo_value was discovered and built." >> "$summary"
+                else
+                  echo "The dispatching repository $repo_value was not in the discovered set. The run proceeded for the complete set; the reason is that the doc-target property is not true on that repository." >> "$summary"
+                fi
+              else
+                echo "The dispatching repository $repo_value could not be correlated because no report was produced." >> "$summary"
+              fi
+            elif [ "$repo_type" = "absent" ]; then
+              echo "The payload named no repository." >> "$summary"
+            else
+              echo "The payload repository field had type $repo_type and was recorded as unusable." >> "$summary"
+            fi
+
+            ref_type=$(field_type ref)
+            ref_value=$(field_string ref)
+            if [ "$ref_type" = "string" ]; then
+              echo "The payload requested ref $ref_value. It is recorded only: the site builds the default branch of every discovered repository, and the run mode follows this run's own ref." >> "$summary"
+            elif [ "$ref_type" = "absent" ]; then
+              echo "The payload named no ref." >> "$summary"
+            else
+              echo "The payload ref field had type $ref_type and was recorded as unusable." >> "$summary"
+            fi
+
+            source_type=$(field_type source)
+            source_value=$(field_string source)
+            if [ "$source_type" = "string" ]; then
+              echo "Requested by: $source_value." >> "$summary"
+            elif [ "$source_type" = "absent" ]; then
+              echo "The payload named no requesting source." >> "$summary"
+            else
+              echo "The payload source field had type $source_type and was recorded as unusable." >> "$summary"
+            fi
+            echo >> "$summary"
+          fi
+
+      # T023. The only place the job's final status is decided from the builder
+      # exit code. A failing guard or a failing publish step already failed the
+      # job; this step cannot turn that back into success.
+      - name: Conclude
+        if: always()
+        env:
+          BUILD_EXIT_CODE: ${{ steps.build.outputs.exit_code }}
+        run: |
+          set -uo pipefail
+
+          case "${BUILD_EXIT_CODE:-}" in
+            0)
+              echo "The builder exited 0. The run succeeded."
+              exit 0
+              ;;
+            1)
+              echo "::error title=Degraded publish::The builder exited 1. The built tree was published and this run fails so the degradation is not ignored."
+              exit 1
+              ;;
+            2)
+              echo "::error title=Configuration error::The builder exited 2. Nothing was published."
+              exit 1
+              ;;
+            3)
+              echo "::error title=Discovery error::The builder exited 3. Nothing was published."
+              exit 1
+              ;;
+            4)
+              echo "::error title=Internal error::The builder exited 4. Nothing was published."
+              exit 1
+              ;;
+            *)
+              echo "::error title=Build did not run::The builder produced no exit code, so nothing was published."
+              exit 1
+              ;;
+          esac
