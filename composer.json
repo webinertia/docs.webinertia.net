@@ -7,7 +7,7 @@
         "php": "~8.4.0 || ~8.5.0",
         "ext-curl": "*",
         "ext-json": "*",
-        "webware/asciidoc-php-multi-repo": "1.0.0-alpha.1"
+        "webware/asciidoc-php-multi-repo": "1.0.0-alpha.2"
     },
     "config": {
         "sort-packages": true,
