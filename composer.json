@@ -1,0 +1,16 @@
+{
+    "name": "webware/docs-webinertia-net",
+    "description": "Configuration and publish workflows for the Webware documentation site at docs.webinertia.net",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "~8.4.0 || ~8.5.0",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "webware/asciidoc-php-multi-repo": "1.0.0-alpha.1"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": false
+    }
+}
