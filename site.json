@@ -4,7 +4,8 @@
     "site": {
         "name": "Webware Documentation",
         "baseUrl": "https://docs.webinertia.net/",
-        "basePath": "/"
+        "basePath": "/",
+        "hostname": "docs.webinertia.net"
     },
     "organization": {
         "name": "webinertia",

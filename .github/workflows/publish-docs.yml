@@ -1,11 +1,34 @@
 name: Publish docs
 
+# Implements the site publish workflow in
+# webinertia/asciidoc-php-multi-repo at specs/003-docs-site-publish.
+#
+# The build runs in the container action, so no PHP toolchain is installed here.
+# The action exposes only `config` and `output`, and both are workspace relative,
+# so the rendered tree is build/docs inside the checkout and the report lands at
+# build/docs-report.json beside it. The publish step copies only the output
+# directory, which is what keeps the report, the cache and the checkout out of
+# the published tree.
+#
+# Pages stays on `build_type: legacy` with `gh-pages` as its source, so the
+# workflow deploys by pushing a commit, never by changing Pages configuration
+# and never with actions/deploy-pages.
+#
+# A container action does not expose its exit code to the workflow. The builder
+# writes its exit code into its own report (contracts/report.schema.json), so the
+# run summary reads it from there instead of guessing.
+
 on:
   push:
     branches: [master]
   schedule:
     - cron: '17 3 * * *'
   workflow_dispatch:
+    inputs:
+      force_republish:
+        description: 'Commit even when the rendered tree is unchanged'
+        type: boolean
+        default: false
   repository_dispatch:
     types: [docs-source-updated]
 
@@ -16,19 +39,249 @@ concurrency:
   group: docs-publish
   cancel-in-progress: false
 
+env:
+  # The action renders to this directory, and site.json must agree. Preflight
+  # fails the run when the two diverge, so the published tree is always the
+  # configured output rather than an override nobody noticed.
+  SITE_OUTPUT: build/docs
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      DOC_DISCOVERY_TOKEN: ${{ secrets.DOC_DISCOVERY_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Check out the site repository
         uses: actions/checkout@v4
-      - name: Build and deploy the site
+
+      - name: Preflight
+        id: preflight
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::$1"; exit 1; }
+
+          [ -f site.json ] || fail "site.json is missing, so there is nothing to render."
+          jq -e . site.json >/dev/null 2>&1 || fail "site.json is not valid JSON."
+
+          token_var=$(jq -r '.organization.tokenEnvVar // "DOC_DISCOVERY_TOKEN"' site.json)
+          [ "$token_var" = "DOC_DISCOVERY_TOKEN" ] ||
+            fail "site.json names $token_var as the discovery credential, but this workflow provides DOC_DISCOVERY_TOKEN."
+          [ -n "${DOC_DISCOVERY_TOKEN:-}" ] ||
+            fail "The DOC_DISCOVERY_TOKEN secret is empty, so organization discovery cannot run. Set the secret and the doc-target property."
+
+          output_dir=$(jq -r '.output.directory // "build/site"' site.json)
+          [ "$output_dir" = "$SITE_OUTPUT" ] ||
+            fail "site.json renders to $output_dir but the action is given $SITE_OUTPUT, so the published tree would not be the configured output."
+
+          report_path=$(jq -r '.output.reportPath // "build/report.json"' site.json)
+          cache_path=$(jq -r '.output.cacheDirectory // ".cache/multi-repo"' site.json)
+
+          case "$report_path" in
+            "$SITE_OUTPUT"/*) fail "The report path $report_path is inside the output directory, so it would be published." ;;
+          esac
+          case "$cache_path" in
+            "$SITE_OUTPUT"/*) fail "The cache path $cache_path is inside the output directory, so it would be published." ;;
+          esac
+
+          {
+            echo "report_path=$report_path"
+            echo "cache_path=$cache_path"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build the site
+        id: build
+        continue-on-error: true
         # This tag is the pin, not a moving branch. A release tag must carry
         # action.yml or there is no action definition to run, so advance this ref
         # deliberately to a chosen release rather than tracking a branch.
         uses: webinertia/asciidoc-php-multi-repo@1.0.0-alpha.4
         with:
           config: site.json
+          output: ${{ env.SITE_OUTPUT }}
+
+      - name: Guard the built tree
+        id: guard
+        if: steps.build.outcome == 'success'
         env:
-          DOC_DISCOVERY_TOKEN: ${{ secrets.DOC_DISCOVERY_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPORT_PATH: ${{ steps.preflight.outputs.report_path }}
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::$1"; exit 1; }
+
+          [ -d "$SITE_OUTPUT" ] ||
+            fail "The builder reported success but $SITE_OUTPUT does not exist, so there is no tree to publish."
+
+          [ -f "$SITE_OUTPUT/CNAME" ] ||
+            fail "The built tree has no CNAME. Publishing without it clears the custom domain, so nothing is pushed. Set site.hostname in site.json."
+          [ -f "$SITE_OUTPUT/.nojekyll" ] ||
+            fail "The built tree has no .nojekyll, so Pages would run Jekyll over the branch. Nothing is pushed."
+
+          built_cname=$(tr -d '\r\n' < "$SITE_OUTPUT/CNAME")
+          [ -n "$built_cname" ] || fail "The built CNAME is empty, so nothing is pushed."
+
+          # The checkout is a single-branch shallow clone, so a bare
+          # "fetch origin gh-pages" only writes FETCH_HEAD. The explicit
+          # refspec is what creates the remote-tracking ref.
+          if ! git rev-parse --verify --quiet refs/remotes/origin/gh-pages >/dev/null; then
+            git fetch --no-tags --depth=1 origin \
+              '+refs/heads/gh-pages:refs/remotes/origin/gh-pages' >/dev/null 2>&1 || true
+          fi
+
+          if git rev-parse --verify --quiet refs/remotes/origin/gh-pages >/dev/null; then
+            live_cname=$(git show refs/remotes/origin/gh-pages:CNAME 2>/dev/null | tr -d '\r\n' || true)
+            if [ -n "$live_cname" ] && [ "$built_cname" != "$live_cname" ]; then
+              fail "The built CNAME is $built_cname but gh-pages serves $live_cname. A custom domain change is a deliberate act, so nothing is pushed."
+            fi
+            echo "CNAME $built_cname matches the live gh-pages value."
+          else
+            echo "gh-pages does not exist yet, so there is no live CNAME to compare against."
+          fi
+
+          if [ -f "$REPORT_PATH" ]; then
+            reported_exit=$(jq -r '.exitCode' "$REPORT_PATH")
+            [ "$reported_exit" = "0" ] ||
+              fail "The build step succeeded but its report records exit code $reported_exit, so nothing is pushed."
+          fi
+
+      - name: Attach the build report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-report
+          path: ${{ steps.preflight.outputs.report_path || 'build/docs-report.json' }}
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Publish to gh-pages
+        id: publish
+        if: steps.guard.outcome == 'success' && github.ref == 'refs/heads/master'
+        env:
+          REPORT_PATH: ${{ steps.preflight.outputs.report_path }}
+          CACHE_PATH: ${{ steps.preflight.outputs.cache_path }}
+          TRIGGER: ${{ github.event_name }}
+          FORCE_REPUBLISH: ${{ inputs.force_republish || 'false' }}
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::$1"; exit 1; }
+
+          work=$(mktemp -d)
+          trap 'git worktree remove --force "$work" >/dev/null 2>&1 || rm -rf "$work"' EXIT
+
+          if ! git rev-parse --verify --quiet refs/remotes/origin/gh-pages >/dev/null; then
+            git fetch --no-tags --depth=1 origin \
+              '+refs/heads/gh-pages:refs/remotes/origin/gh-pages' >/dev/null 2>&1 || true
+          fi
+
+          if git rev-parse --verify --quiet refs/remotes/origin/gh-pages >/dev/null; then
+            git worktree add --detach "$work" refs/remotes/origin/gh-pages >/dev/null
+          else
+            # No gh-pages yet: start from an empty tree rather than failing.
+            git worktree add --detach "$work" HEAD >/dev/null
+            git -C "$work" branch -D docs-publish >/dev/null 2>&1 || true
+            git -C "$work" checkout --orphan docs-publish >/dev/null
+          fi
+
+          # Wholesale replacement: every path the output does not contain is
+          # removed, so nothing survives by accident and no path needs a list.
+          find "$work" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "$SITE_OUTPUT"/. "$work"/
+
+          [ ! -e "$work/.github" ] || fail "The repository checkout leaked into the published tree."
+          [ ! -e "$work/$REPORT_PATH" ] || fail "The build report would be published."
+          [ ! -e "$work/$CACHE_PATH" ] || fail "The builder cache would be published."
+
+          git -C "$work" add -A
+
+          if [ -z "$(git -C "$work" status --porcelain --untracked-files=no)" ]; then
+            if [ "$FORCE_REPUBLISH" != "true" ]; then
+              echo "The rendered tree is identical to gh-pages, so no commit is created."
+              {
+                echo "published=false"
+                echo "reason=no-op"
+              } >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            message="Docs republish from ${TRIGGER} (forced, tree unchanged)"
+          else
+            changed=$(git -C "$work" status --porcelain --untracked-files=no |
+              sed 's/^...//' | sed 's/.* -> //' |
+              awk -F/ '{print $1}' | sort -u | paste -sd, - | sed 's/,/, /g')
+            message="Docs publish from ${TRIGGER}: ${changed}"
+          fi
+
+          git -C "$work" \
+            -c user.name="github-actions[bot]" \
+            -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit --allow-empty -m "$message" >/dev/null
+
+          # Append one commit. Never forced, so a rejected push fails the run
+          # instead of rewriting the branch.
+          git -C "$work" push origin HEAD:refs/heads/gh-pages
+
+          sha=$(git -C "$work" rev-parse HEAD)
+          {
+            echo "published=true"
+            echo "sha=$sha"
+          } >> "$GITHUB_OUTPUT"
+          echo "Published $sha"
+
+      - name: Write the run summary
+        if: always()
+        env:
+          REPORT_PATH: ${{ steps.preflight.outputs.report_path }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          GUARD_OUTCOME: ${{ steps.guard.outcome }}
+          PUBLISHED: ${{ steps.publish.outputs.published }}
+          PUBLISHED_SHA: ${{ steps.publish.outputs.sha }}
+          TRIGGER: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+
+          report="${REPORT_PATH:-build/docs-report.json}"
+          if [ -f "$report" ]; then
+            exit_code=$(jq -r '.exitCode' "$report")
+            totals=$(jq -r '.totals | "ok \(.ok), partial \(.partial), failed \(.failed), skipped \(.skipped), pages \(.renderedPages)/\(.pages)"' "$report")
+            not_ok=$(jq -r '[.projects[] | select(.status != "ok") | "\(.slug) (\(.status): \([.errors[].reasonCode] | join(", ")))"] | join("; ")' "$report")
+          else
+            exit_code="not recorded"
+            totals="not recorded"
+            not_ok=""
+          fi
+
+          {
+            echo "## Docs publish"
+            echo
+            echo "| Item | Value |"
+            echo "| --- | --- |"
+            echo "| Trigger | \`$TRIGGER\` |"
+            echo "| Ref | \`$REF\` |"
+            echo "| Builder exit code | \`$exit_code\` |"
+            echo "| Build step | \`${BUILD_OUTCOME:-not run}\` |"
+            echo "| Guards | \`${GUARD_OUTCOME:-not run}\` |"
+            echo "| Project totals | $totals |"
+            if [ -n "$not_ok" ]; then
+              echo "| Projects not ok | $not_ok |"
+            fi
+            if [ "${PUBLISHED:-}" = "true" ]; then
+              echo "| Published commit | \`$PUBLISHED_SHA\` |"
+            elif [ "${PUBLISHED:-}" = "false" ]; then
+              echo "| Published commit | none, the rendered tree matched gh-pages |"
+            elif [ "$REF" != "refs/heads/master" ]; then
+              echo "| Published commit | none, a run on \`$REF\` builds and guards but never pushes |"
+            else
+              echo "| Published commit | none |"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Conclude
+        if: always()
+        env:
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          set -euo pipefail
+          if [ "${BUILD_OUTCOME:-}" != "success" ]; then
+            echo "::error::The builder did not exit 0, so nothing was published and gh-pages is unchanged."
+            exit 1
+          fi

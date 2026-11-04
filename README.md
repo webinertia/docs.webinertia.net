@@ -30,7 +30,7 @@ document in [webinertia/asciidoc-php-multi-repo](https://github.com/webinertia/a
 
 | Path | Purpose |
 |---|---|
-| `site.json` | Site configuration: organization, project selection property, output locations |
+| `site.json` | Site configuration: organization, project selection property, custom hostname, output locations |
 | `composer.json`, `composer.lock` | Pin the builder (`webware/asciidoc-php-multi-repo`) for a local build only; the workflow runs the container action |
 | `.github/workflows/publish-docs.yml` | The scheduled, dispatchable publish pipeline |
 | `README.md` | This file |
