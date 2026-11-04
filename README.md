@@ -30,16 +30,19 @@ document in [webinertia/asciidoc-php-multi-repo](https://github.com/webinertia/a
 
 | Path | Purpose |
 |---|---|
-| `site.json` | Site configuration: organization, project selection property, output locations |
-| `composer.json`, `composer.lock` | Pin the builder (`webware/asciidoc-php-multi-repo`) used by the workflow |
+| `site.json` | Site configuration: organization, project selection property, custom hostname, output locations |
+| `composer.json`, `composer.lock` | Pin the builder (`webware/asciidoc-php-multi-repo`) for a local build only; the workflow runs the container action |
 | `.github/workflows/publish-docs.yml` | The scheduled, dispatchable publish pipeline |
 | `README.md` | This file |
 
 ## Building locally
 
+The publish workflow builds in the `webinertia/asciidoc-php-multi-repo` container action, so no
+PHP toolchain is installed on the runner. The steps below are for a local preview only.
+
 ```sh
 composer install --no-dev --no-interaction
-php vendor/bin/asciidoc-php-multi-repo build --config site.json --out build/site --report build/report.json
+php vendor/bin/asciidoc-php-multi-repo build --config site.json
 ```
 
 Discovery reads the organization through the `DOC_DISCOVERY_TOKEN` environment variable, which

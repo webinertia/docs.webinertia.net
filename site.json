@@ -1,9 +1,10 @@
 {
-    "$schema": "https://raw.githubusercontent.com/webinertia/asciidoc-php-multi-repo/1.0.0-alpha.2/specs/001-multi-repo-docs-site/contracts/site.schema.json",
+    "$schema": "https://raw.githubusercontent.com/webinertia/asciidoc-php-multi-repo/1.0.x/config/site.schema.json",
     "schemaVersion": 1,
     "site": {
         "name": "Webware Documentation",
         "baseUrl": "https://docs.webinertia.net/",
+        "basePath": "/",
         "hostname": "docs.webinertia.net"
     },
     "organization": {
@@ -14,5 +15,25 @@
     },
     "source": {
         "directory": "docs"
+    },
+    "render": {
+        "safeMode": "safe"
+    },
+    "projects": {
+        "message-bus": {
+            "title": "message-bus",
+            "description": "MessageBus for Mezzio",
+            "accent": "#0f766e"
+        },
+        "messagebus-event": {
+            "title": "messagebus-event",
+            "description": "Phly EventDispatcher support for MessageBus",
+            "accent": "#7e5ae0"
+        }
+    },
+    "output": {
+        "directory": "build/docs",
+        "cacheDirectory": "build/docs-cache",
+        "reportPath": "build/docs-report.json"
     }
 }
