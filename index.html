@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="no-js">
+<html lang="en" data-theme="dark" data-theme-mode="system">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,13 +7,35 @@
 <link rel="canonical" href="https://docs.webinertia.net/">
 <link rel="icon" href="/assets/logo.a56b33.svg">
 <link rel="stylesheet" href="/assets/asciidoctor.426b47.css">
-<link rel="stylesheet" href="/assets/site.44458d.css">
+<link rel="stylesheet" href="/assets/site.e40287.css">
+<link rel="stylesheet" href="/assets/accent.4e16a5.css">
+<script>
+(function () {
+  var stored = null;
+  try {
+    stored = window.localStorage.getItem('asciidoc-php-theme');
+  } catch (error) {
+    stored = null;
+  }
+  var mode = document.documentElement.getAttribute('data-theme-mode');
+  var theme;
+  if (stored === 'light' || stored === 'dark') {
+    theme = stored;
+  } else if (mode === 'light' || mode === 'dark') {
+    theme = mode;
+  } else {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-header">
 <img class="site-logo" src="/assets/logo.a56b33.svg" alt="Webware Documentation" width="34" height="34" decoding="async">
 <h1 class="landing-title">Documentation</h1>
+<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">Toggle dark mode</button>
 </header>
 <main id="main" class="landing">
 <ul class="project-cards">
@@ -34,5 +56,6 @@
 </li>
 </ul>
 </main>
+<script src="/assets/theme.42bf6e.js" defer></script>
 </body>
 </html>
