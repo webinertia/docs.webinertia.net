@@ -23,9 +23,10 @@ jobs:
       - name: Check out the site repository
         uses: actions/checkout@v4
       - name: Build and deploy the site
-        # 1.0.x is the branch the action definition is published from. Pin this to the
-        # release tag once a tag carrying action.yml exists.
-        uses: webinertia/asciidoc-php-multi-repo@1.0.x
+        # This tag is the pin, not a moving branch. A release tag must carry
+        # action.yml or there is no action definition to run, so advance this ref
+        # deliberately to a chosen release rather than tracking a branch.
+        uses: webinertia/asciidoc-php-multi-repo@1.0.0-alpha.4
         with:
           config: site.json
         env:
