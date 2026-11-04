@@ -1,0 +1,33 @@
+name: Publish docs
+
+on:
+  push:
+    branches: [master]
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [docs-source-updated]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the site repository
+        uses: actions/checkout@v4
+      - name: Build and deploy the site
+        # 1.0.x is the branch the action definition is published from. Pin this to the
+        # release tag once a tag carrying action.yml exists.
+        uses: webinertia/asciidoc-php-multi-repo@1.0.x
+        with:
+          config: site.json
+        env:
+          DOC_DISCOVERY_TOKEN: ${{ secrets.DOC_DISCOVERY_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
