@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-mode="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Middleware Pipeline | message-bus | Webware Documentation</title>
+<link rel="canonical" href="https://docs.webinertia.net/message-bus/v1/api-reference/middleware-pipeline.html">
+<link rel="icon" href="/assets/logo.a56b33.svg">
+<link rel="stylesheet" href="/assets/asciidoctor.426b47.css">
+<link rel="stylesheet" href="/assets/site.44458d.css">
+<link rel="stylesheet" href="/assets/accent.b7bf58.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script>
+(function () {
+  var stored = null;
+  try {
+    stored = window.localStorage.getItem('asciidoc-php-theme');
+  } catch (error) {
+    stored = null;
+  }
+  var mode = document.documentElement.getAttribute('data-theme-mode');
+  var theme;
+  if (stored === 'light' || stored === 'dark') {
+    theme = stored;
+  } else if (mode === 'light' || mode === 'dark') {
+    theme = mode;
+  } else {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<a class="site-brand" href="/"><img class="site-logo" src="/assets/logo.a56b33.svg" alt="Webware Documentation" width="34" height="34" decoding="async"></a>
+<p class="project-name">message-bus</p>
+<p class="version-label">v1</p>
+<nav class="project-switcher" aria-label="Projects" data-project-switcher>
+<p class="nav-label">Projects</p>
+<ul>
+<li class="project-item"><a href="/asciidoc-php/">asciidoc-php</a></li>
+<li class="project-item project-current"><a href="/message-bus/" aria-current="page">message-bus</a></li>
+<li class="project-item"><a href="/messagebus-event/">messagebus-event</a></li>
+</ul>
+</nav>
+<nav class="version-selector" aria-label="Versions" data-version-selector>
+<p class="nav-label">Versions</p>
+<ul>
+<li class="version-item version-latest"><a href="/message-bus/v2/api-reference/middleware-pipeline.html">v2 <span class="version-flag">(latest)</span></a></li>
+<li class="version-item"><a href="/message-bus/v1/api-reference/middleware-pipeline.html" aria-current="page">v1</a></li>
+</ul>
+</nav>
+<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">Toggle dark mode</button>
+<div class="site-search" data-search data-site-index="/search-index.json" data-project-index="/message-bus/search-index.json" data-project-slug="message-bus" data-version-label="v1" hidden>
+<label class="search-label" for="site-search-input">Search</label>
+<input class="search-input" id="site-search-input" type="search" autocomplete="off" spellcheck="false" data-search-input>
+<label class="search-scope-label" for="site-search-scope">Scope</label>
+<select class="search-scope" id="site-search-scope" data-search-scope>
+<option value="version">This version</option>
+<option value="project">All versions</option>
+<option value="site">All projects</option>
+</select>
+<ul class="search-results" data-search-results hidden></ul>
+<p class="search-status" data-search-status aria-live="polite"></p>
+</div>
+</header>
+<aside class="outdated-banner" aria-label="Version notice">
+<p>You are reading <strong>v1</strong>. The current version is <a href="/message-bus/v2/api-reference/middleware-pipeline.html">v2</a>.</p>
+</aside>
+<div class="layout">
+<nav class="sidebar" aria-label="On this page">
+<ol class="toc-list">
+<li class="toc-level-2"><a href="#_middlewareinterface">`MiddlewareInterface`</a></li>
+<li class="toc-level-2"><a href="#_middlewarepipelineinterface_middlewarepipe">`MiddlewarePipelineInterface` / `MiddlewarePipe`</a></li>
+<li class="toc-level-2"><a href="#_next">`Next`</a></li>
+<li class="toc-level-2"><a href="#_middlewaremessagehandlermiddleware">`Middleware\MessageHandlerMiddleware`</a></li>
+<li class="toc-level-2"><a href="#_handleremptypipelinehandler">`Handler\EmptyPipelineHandler`</a></li>
+</ol>
+</nav>
+<main id="main">
+<article class="doc">
+<div class="sect1">
+<h2 id="_middlewareinterface"><code>MiddlewareInterface</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The PSR-15-style contract for a single middleware step: `process(MessageInterface $message,
+MessageHandlerInterface $handler): ResultInterface`. Implementations decide whether/when to call
+<code>$handler-&gt;handle()</code> and can act on the message or result before/after doing so.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_middlewarepipelineinterface_middlewarepipe"><code>MiddlewarePipelineInterface</code> / <code>MiddlewarePipe</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>MiddlewarePipelineInterface</code> extends both <code>MiddlewareInterface</code> and <code>MessageHandlerInterface</code>, and adds
+<code>pipe(MiddlewareInterface $middleware): void</code> for registering middleware.</p>
+</div>
+<div class="paragraph">
+<p><code>MiddlewarePipe</code> is the default implementation, backed by an <code>SplQueue</code>. Calling <code>handle()</code> runs the
+queued middleware against an <code>EmptyPipelineHandler</code> as the terminal handler (see below). Cloning a
+<code>MiddlewarePipe</code> performs a deep clone of its internal queue so pipelines can be reused safely.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next"><code>Next</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Internal, single-use handler that walks the middleware queue one step at a time. Each call to <code>handle()</code>
+dequeues the next middleware, clones itself for the remaining queue, and invokes the middleware with
+that clone as its <code>$handler</code>. Once the queue is exhausted it delegates to the configured
+<code>EmptyPipelineHandler</code>. Calling <code>handle()</code> on the same <code>Next</code> instance twice throws
+<code>Exception\NextHandlerAlreadyCalledException</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_middlewaremessagehandlermiddleware"><code>Middleware\MessageHandlerMiddleware</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The library's built-in "terminal" middleware, registered by <code>ConfigProvider</code> with the lowest default
+priority so it runs last. It uses a <code>MessageHandlerResolverInterface</code> to resolve and invoke the handler
+mapped to the incoming message, then forwards the resulting <code>ResultInterface</code> on to the next handler in
+the pipeline so any middleware that runs <em>after</em> it (e.g. logging) can inspect the result.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handleremptypipelinehandler"><code>Handler\EmptyPipelineHandler</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The default terminal handler used when a <code>MiddlewarePipe</code>'s queue is exhausted. If the message it
+receives is already a <code>ResultInterface</code> (i.e. a result produced by <code>MessageHandlerMiddleware</code>), it
+returns it as-is; otherwise it throws <code>Exception\MessageException</code>, since no handler ever produced a
+result.</p>
+</div>
+</div>
+</div>
+</article>
+</main>
+</div>
+<footer class="site-footer">
+<a class="source-link" href="https://github.com/webinertia/message-bus/blob/2.0.x/docs/v1/api-reference/middleware-pipeline.adoc" rel="noopener">Edit this page</a>
+<p class="footer-project">message-bus</p>
+<p class="footer-version">v1</p>
+</footer>
+<script src="/assets/theme.42bf6e.js" defer></script>
+<script src="/assets/nav.1868c9.js" defer></script>
+<script src="/assets/search-core.db0f42.js" defer></script>
+<script src="/assets/search.2912b7.js" defer></script>
+</body>
+</html>

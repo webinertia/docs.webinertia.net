@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-mode="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contributing | messagebus-event | Webware Documentation</title>
+<link rel="canonical" href="https://docs.webinertia.net/messagebus-event/v1/contributing.html">
+<link rel="icon" href="/assets/logo.a56b33.svg">
+<link rel="stylesheet" href="/assets/asciidoctor.426b47.css">
+<link rel="stylesheet" href="/assets/site.44458d.css">
+<link rel="stylesheet" href="/assets/accent.4e16a5.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script>
+(function () {
+  var stored = null;
+  try {
+    stored = window.localStorage.getItem('asciidoc-php-theme');
+  } catch (error) {
+    stored = null;
+  }
+  var mode = document.documentElement.getAttribute('data-theme-mode');
+  var theme;
+  if (stored === 'light' || stored === 'dark') {
+    theme = stored;
+  } else if (mode === 'light' || mode === 'dark') {
+    theme = mode;
+  } else {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<a class="site-brand" href="/"><img class="site-logo" src="/assets/logo.a56b33.svg" alt="Webware Documentation" width="34" height="34" decoding="async"></a>
+<p class="project-name">messagebus-event</p>
+<p class="version-label">v1</p>
+<nav class="project-switcher" aria-label="Projects" data-project-switcher>
+<p class="nav-label">Projects</p>
+<ul>
+<li class="project-item"><a href="/asciidoc-php/">asciidoc-php</a></li>
+<li class="project-item"><a href="/message-bus/">message-bus</a></li>
+<li class="project-item project-current"><a href="/messagebus-event/" aria-current="page">messagebus-event</a></li>
+</ul>
+</nav>
+<nav class="version-selector" aria-label="Versions" data-version-selector>
+<p class="nav-label">Versions</p>
+<ul>
+<li class="version-item version-latest"><a href="/messagebus-event/v2/contributing.html">v2 <span class="version-flag">(latest)</span></a></li>
+<li class="version-item"><a href="/messagebus-event/v1/contributing.html" aria-current="page">v1</a></li>
+</ul>
+</nav>
+<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">Toggle dark mode</button>
+<div class="site-search" data-search data-site-index="/search-index.json" data-project-index="/messagebus-event/search-index.json" data-project-slug="messagebus-event" data-version-label="v1" hidden>
+<label class="search-label" for="site-search-input">Search</label>
+<input class="search-input" id="site-search-input" type="search" autocomplete="off" spellcheck="false" data-search-input>
+<label class="search-scope-label" for="site-search-scope">Scope</label>
+<select class="search-scope" id="site-search-scope" data-search-scope>
+<option value="version">This version</option>
+<option value="project">All versions</option>
+<option value="site">All projects</option>
+</select>
+<ul class="search-results" data-search-results hidden></ul>
+<p class="search-status" data-search-status aria-live="polite"></p>
+</div>
+</header>
+<aside class="outdated-banner" aria-label="Version notice">
+<p>You are reading <strong>v1</strong>. The current version is <a href="/messagebus-event/v2/contributing.html">v2</a>.</p>
+</aside>
+<div class="layout">
+<nav class="sidebar" aria-label="On this page">
+<ol class="toc-list">
+<li class="toc-level-2"><a href="#_setup">Setup</a></li>
+<li class="toc-level-2"><a href="#_running_tests">Running Tests</a></li>
+<li class="toc-level-2"><a href="#_static_analysis">Static Analysis</a></li>
+<li class="toc-level-2"><a href="#_pull_requests">Pull Requests</a></li>
+</ol>
+</nav>
+<main id="main">
+<article class="doc">
+<div class="sect1">
+<h2 id="_setup">Setup</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash hljs" data-lang="bash">git clone https://github.com/webinertia/messagebus-event.git
+cd messagebus-event
+composer install</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_running_tests">Running Tests</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash hljs" data-lang="bash">composer test              # unit tests only (test/unit)
+composer test-integration   # integration tests only (test/integration)
+composer test-all           # both suites
+composer test-coverage      # unit tests with a Clover coverage report</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Tests are organized by autoload-dev namespace:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Namespace</th>
+<th class="tableblock halign-left valign-top">Directory</th>
+<th class="tableblock halign-left valign-top">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>WebwareTest\MessageBus\Event\</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>test/unit/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unit tests, one class per source file.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>WebwareIntegrationTest\MessageBus\Event\</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>test/integration/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Real <code>Laminas\ServiceManager\ServiceManager</code> wiring both this package's and <code>webware/message-bus</code>'s `ConfigProvider`s.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>WebwareTestAsset\MessageBus\Event\</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>test/asset/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shared fixtures/test doubles (e.g. <code>TestCommand</code>, <code>RecordingListener</code>).</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><code>phpunit.xml.dist</code> requires coverage metadata on every test (<code><mark>[CoversClass]</code> or <code></mark>[CoversNothing]</code>) and
+fails the run on any notice, deprecation, or warning.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_static_analysis">Static Analysis</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This project uses <a href="https://github.com/carthage-software/mago" rel="noopener">Mago</a> for formatting, linting, and static
+analysis, configured in <code>mago.toml</code> against both <code>src</code> and <code>test</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash hljs" data-lang="bash">mago format   # auto-format
+mago lint     # style/best-practice rules (mago lint --fix auto-fixes some)
+mago analyze  # static type analysis</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All three must report no issues before submitting a pull request. If a lint rule is a genuine false
+positive, suppress the specific line with a <code>// @mago-expect lint:&lt;rule-name&gt;</code> comment directly above it
+rather than disabling the rule globally.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pull_requests">Pull Requests</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Keep changes focused; unrelated formatting-only diffs make review harder.</p>
+</li>
+<li>
+<p>Add or update tests for any behavior change.</p>
+</li>
+<li>
+<p>Update the relevant page(s) under <code>docs/v1/</code> when public API or configuration shape changes.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</article>
+</main>
+</div>
+<footer class="site-footer">
+<a class="source-link" href="https://github.com/webinertia/messagebus-event/blob/2.0.x/docs/v1/contributing.adoc" rel="noopener">Edit this page</a>
+<p class="footer-project">messagebus-event</p>
+<p class="footer-version">v1</p>
+</footer>
+<script src="/assets/theme.42bf6e.js" defer></script>
+<script src="/assets/nav.1868c9.js" defer></script>
+<script src="/assets/search-core.db0f42.js" defer></script>
+<script src="/assets/search.2912b7.js" defer></script>
+</body>
+</html>

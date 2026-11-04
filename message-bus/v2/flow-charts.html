@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-mode="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Execution Flow | message-bus | Webware Documentation</title>
+<link rel="canonical" href="https://docs.webinertia.net/message-bus/v2/flow-charts.html">
+<link rel="icon" href="/assets/logo.a56b33.svg">
+<link rel="stylesheet" href="/assets/asciidoctor.426b47.css">
+<link rel="stylesheet" href="/assets/site.44458d.css">
+<link rel="stylesheet" href="/assets/accent.b7bf58.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script>
+(function () {
+  var stored = null;
+  try {
+    stored = window.localStorage.getItem('asciidoc-php-theme');
+  } catch (error) {
+    stored = null;
+  }
+  var mode = document.documentElement.getAttribute('data-theme-mode');
+  var theme;
+  if (stored === 'light' || stored === 'dark') {
+    theme = stored;
+  } else if (mode === 'light' || mode === 'dark') {
+    theme = mode;
+  } else {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<a class="site-brand" href="/"><img class="site-logo" src="/assets/logo.a56b33.svg" alt="Webware Documentation" width="34" height="34" decoding="async"></a>
+<p class="project-name">message-bus</p>
+<p class="version-label">v2</p>
+<nav class="project-switcher" aria-label="Projects" data-project-switcher>
+<p class="nav-label">Projects</p>
+<ul>
+<li class="project-item"><a href="/asciidoc-php/">asciidoc-php</a></li>
+<li class="project-item project-current"><a href="/message-bus/" aria-current="page">message-bus</a></li>
+<li class="project-item"><a href="/messagebus-event/">messagebus-event</a></li>
+</ul>
+</nav>
+<nav class="version-selector" aria-label="Versions" data-version-selector>
+<p class="nav-label">Versions</p>
+<ul>
+<li class="version-item version-latest"><a href="/message-bus/v2/flow-charts.html" aria-current="page">v2 <span class="version-flag">(latest)</span></a></li>
+<li class="version-item"><a href="/message-bus/v1/flow-charts.html">v1</a></li>
+</ul>
+</nav>
+<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">Toggle dark mode</button>
+<div class="site-search" data-search data-site-index="/search-index.json" data-project-index="/message-bus/search-index.json" data-project-slug="message-bus" data-version-label="v2" hidden>
+<label class="search-label" for="site-search-input">Search</label>
+<input class="search-input" id="site-search-input" type="search" autocomplete="off" spellcheck="false" data-search-input>
+<label class="search-scope-label" for="site-search-scope">Scope</label>
+<select class="search-scope" id="site-search-scope" data-search-scope>
+<option value="version">This version</option>
+<option value="project">All versions</option>
+<option value="site">All projects</option>
+</select>
+<ul class="search-results" data-search-results hidden></ul>
+<p class="search-status" data-search-status aria-live="polite"></p>
+</div>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="On this page">
+<ol class="toc-list">
+<li class="toc-level-2"><a href="#_overview">Overview</a></li>
+<li class="toc-level-2"><a href="#custom-middleware-example">Custom middleware example</a></li>
+</ol>
+</nav>
+<main id="main">
+<article class="doc">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Solid arrows below are the message travelling forward through the pipeline, in priority order; dashed
+arrows are the result on its way back. A result doesn't exist until <code>MessageHandlerMiddleware</code> resolves
+the handler, asks the wired strategy which method to call, and invokes it. The result returns directly
+to the caller from there. Notice no dashed arrow ever touches earlier middleware, since it has no part
+on that side.</p>
+</div>
+<div class="paragraph">
+<p>GitHub renders Mermaid diagrams as scalable SVG, so you can zoom in (browser zoom, or pinch/scroll on
+the diagram) for a closer look. Each diagram below is also wrapped in a collapsible <code>&lt;details&gt;</code> block
+and laid out top-to-bottom so it stays readable without needing to scroll sideways.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_overview">Overview</h2>
+<div class="sectionbody">
+<details open>
+<summary>Expand/collapse diagram</summary>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-mermaid hljs" data-lang="mermaid">flowchart TD
+    App([Application]) --&gt;|handle message| Bus[MessageBus]
+    Bus --&gt;|handle message| Pipe[MiddlewarePipe]
+    Pipe --&gt;|process message, next| MW[Registered middleware]
+    MW --&gt;|next.handle message| HandlerMW[MessageHandlerMiddleware]
+    HandlerMW --&gt;|resolve message| Resolver[MessageHandlerResolver]
+    HandlerMW --&gt;|handlerMethod message| Strategy[Strategy]
+    HandlerMW --&gt;|invoke method| Handler[Command/QueryHandler]
+    Handler -.-&gt;|Result| HandlerMW
+    HandlerMW -.-&gt;|Result| Pipe
+    Pipe -.-&gt;|Result| Bus
+    Bus -.-&gt;|Result| App</code></pre>
+</div>
+</div>
+</details>
+<div class="paragraph">
+<p><code>MessageHandlerMiddleware</code> is just the last entry in the pipeline (lowest default priority), so any
+middleware you register runs before the handler is resolved.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-middleware-example">Custom middleware example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Using the <code>LoggingMiddleware</code> from
+<a href="/message-bus/v2/usage-examples.html#writing-custom-middleware">Writing custom middleware</a>, registered at priority
+<code>10</code> (above <code>MessageHandlerMiddleware</code>'s default priority of <code>1</code>):</p>
+</div>
+<details open>
+<summary>Expand/collapse diagram</summary>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-mermaid hljs" data-lang="mermaid">flowchart TD
+    Bus[MessageBus] --&gt;|process CreateUser, next| Log[LoggingMiddleware&lt;br/&gt;priority 10]
+    Log --&gt;|next.handle message| HandlerMW[MessageHandlerMiddleware&lt;br/&gt;priority 1, runs last]
+    HandlerMW --&gt;|resolve + handlerMethod| Resolver[Resolver + Strategy]
+    HandlerMW --&gt;|invoke method| Handler[CreateUserHandler]
+    Handler -.-&gt;|CommandResult| HandlerMW
+    HandlerMW -.-&gt;|CommandResult| Bus</code></pre>
+</div>
+</div>
+</details>
+</div>
+</div>
+</article>
+</main>
+</div>
+<footer class="site-footer">
+<a class="source-link" href="https://github.com/webinertia/message-bus/blob/2.0.x/docs/v2/flow-charts.adoc" rel="noopener">Edit this page</a>
+<p class="footer-project">message-bus</p>
+<p class="footer-version">v2</p>
+</footer>
+<script src="/assets/theme.42bf6e.js" defer></script>
+<script src="/assets/nav.1868c9.js" defer></script>
+<script src="/assets/search-core.db0f42.js" defer></script>
+<script src="/assets/search.2912b7.js" defer></script>
+</body>
+</html>

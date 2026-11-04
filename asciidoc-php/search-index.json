@@ -1,0 +1,135 @@
+{
+    "schemaVersion": 1,
+    "project": {
+        "slug": "asciidoc-php",
+        "title": "asciidoc-php"
+    },
+    "versions": [
+        {
+            "label": "v1",
+            "latest": true,
+            "url": "/asciidoc-php/v1/",
+            "pages": [
+                {
+                    "url": "/asciidoc-php/v1/index.html",
+                    "title": "asciidoc-php",
+                    "headings": [
+                        {
+                            "id": "_requirements",
+                            "title": "Requirements",
+                            "level": 2
+                        },
+                        {
+                            "id": "_installation",
+                            "title": "Installation",
+                            "level": 2
+                        },
+                        {
+                            "id": "_quick_start",
+                            "title": "Quick start",
+                            "level": 2
+                        },
+                        {
+                            "id": "_reference",
+                            "title": "Reference",
+                            "level": 2
+                        }
+                    ],
+                    "text": "webware/asciidoc-php is a PHP port of the Asciidoctor toolchain that converts AsciiDoc source files to HTML5. The package namespace is Webware\\AsciidocPhp . It follows https://asciidoctor.org/[Asciidoctor] as its reference implementation and targets documentation-quality feature coverage rather than 1:1 API compatibility with Asciidoctor. It is not affiliated with, sponsored by, or endorsed by the Asciidoctor project. Requirements PHP 8.4 or PHP 8.5, with the CLI SAPI available as php Composer, to install the package and its autoloader No PHP runtime dependencies beyond PHP itself Installation Install with Composer: composer require webware/asciidoc-php The command line entry point is installed as vendor/bin/asciidoc-php . When working from a git clone, run php bin/asciidoc-php instead. Quick start Convert a single file, writing the HTML next to the source: vendor/bin/asciidoc-php docs/guide.adoc Convert to a specific output file: vendor/bin/asciidoc-php docs/guide.adoc -o build/guide.html The same conversion is available from PHP through the facade: use Webware\\AsciidocPhp\\Asciidoc; $html = Asciidoc::convert('= Hello World'); $html = Asciidoc::convertFile('/path/to/guide.adoc', [ 'attributes' =&gt; ['toc' =&gt; 'left', 'sectnums' =&gt; ''], ]); Reference CLI usage"
+                },
+                {
+                    "url": "/asciidoc-php/v1/usage.html",
+                    "title": "Usage Reference",
+                    "headings": [
+                        {
+                            "id": "_command_line_interface",
+                            "title": "Command-line Interface",
+                            "level": 2
+                        },
+                        {
+                            "id": "_synopsis",
+                            "title": "Synopsis",
+                            "level": 3
+                        },
+                        {
+                            "id": "_options",
+                            "title": "Options",
+                            "level": 3
+                        },
+                        {
+                            "id": "_examples",
+                            "title": "Examples",
+                            "level": 3
+                        },
+                        {
+                            "id": "_php_api",
+                            "title": "PHP API",
+                            "level": 2
+                        },
+                        {
+                            "id": "_asciidocconvert",
+                            "title": "`Asciidoc::convert()`",
+                            "level": 3
+                        },
+                        {
+                            "id": "_asciidocconvertfile",
+                            "title": "`Asciidoc::convertFile()`",
+                            "level": 3
+                        },
+                        {
+                            "id": "api-options",
+                            "title": "API Option Keys",
+                            "level": 3
+                        },
+                        {
+                            "id": "_api_examples",
+                            "title": "API Examples",
+                            "level": 3
+                        },
+                        {
+                            "id": "yaml-front-matter",
+                            "title": "YAML Front Matter",
+                            "level": 2
+                        },
+                        {
+                            "id": "_format",
+                            "title": "Format",
+                            "level": 3
+                        },
+                        {
+                            "id": "_behaviour",
+                            "title": "Behaviour",
+                            "level": 3
+                        },
+                        {
+                            "id": "_activating_via_cli",
+                            "title": "Activating via CLI",
+                            "level": 3
+                        },
+                        {
+                            "id": "_activating_via_api",
+                            "title": "Activating via API",
+                            "level": 3
+                        },
+                        {
+                            "id": "_document_attributes_reference",
+                            "title": "Document Attributes Reference",
+                            "level": 2
+                        },
+                        {
+                            "id": "_read_only_set_by_the_converter",
+                            "title": "Read-only (set by the converter)",
+                            "level": 3
+                        },
+                        {
+                            "id": "_configurable",
+                            "title": "Configurable",
+                            "level": 3
+                        }
+                    ],
+                    "text": "This document describes every option available when using asciidoc-php , both from the command line and from the PHP API. 1. Command-line Interface The bin/asciidoc-php binary converts one or more AsciiDoc source files to the configured output format. 1.1. Synopsis asciidoc-php [options] FILE [FILE ...] asciidoc-php [options] - # read from STDIN, write to STDOUT 1.2. Options 1.2.1. -b, --backend BACKEND Select the output backend. Value Description html5 (default) HTML 5 output via the bundled Html5Converter Only html5 is implemented in v0.1. The flag is accepted for forward-compatibility. 1.2.2. -d, --doctype DOCTYPE Set the document type, which controls which structural sections are valid and how the header is rendered. Value Description article (default) Standard article — single-part document book Multi-part book — accepts = Part Title level-0 sections manpage UNIX man-page — NAME , SYNOPSIS , DESCRIPTION structure inline Fragment — renders a single inline paragraph, no block wrapper 1.2.3. -o, --out-file FILE Write the converted output to FILE instead of the default location. Use - to write to STDOUT. When converting multiple input files this flag applies to every file in sequence; prefer --destination-dir for batch conversion. 1.2.4. -D, --destination-dir DIR Place all converted output files into DIR . The directory is created automatically (including intermediate directories) if it does not exist. Each output file is named after the input file with its extension replaced by .html . asciidoc-php -D html/ docs/*.adoc 1.2.5. -B, --base-dir DIR Override the base directory used to resolve include:: directives. Defaults to the directory of the input file when --out-file / a positional path is given, or the current working directory for STDIN. 1.2.6. -S, --safe-mode MODE Control which features are available based on trust level. Value Integer Description unsafe 0 All features enabled; use only for fully trusted input safe 1 (default) Standard restrictions; external i"
+                }
+            ]
+        }
+    ]
+}

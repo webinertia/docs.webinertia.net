@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-mode="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contributing | message-bus | Webware Documentation</title>
+<link rel="canonical" href="https://docs.webinertia.net/message-bus/v1/contributing.html">
+<link rel="icon" href="/assets/logo.a56b33.svg">
+<link rel="stylesheet" href="/assets/asciidoctor.426b47.css">
+<link rel="stylesheet" href="/assets/site.44458d.css">
+<link rel="stylesheet" href="/assets/accent.b7bf58.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script>
+(function () {
+  var stored = null;
+  try {
+    stored = window.localStorage.getItem('asciidoc-php-theme');
+  } catch (error) {
+    stored = null;
+  }
+  var mode = document.documentElement.getAttribute('data-theme-mode');
+  var theme;
+  if (stored === 'light' || stored === 'dark') {
+    theme = stored;
+  } else if (mode === 'light' || mode === 'dark') {
+    theme = mode;
+  } else {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<a class="site-brand" href="/"><img class="site-logo" src="/assets/logo.a56b33.svg" alt="Webware Documentation" width="34" height="34" decoding="async"></a>
+<p class="project-name">message-bus</p>
+<p class="version-label">v1</p>
+<nav class="project-switcher" aria-label="Projects" data-project-switcher>
+<p class="nav-label">Projects</p>
+<ul>
+<li class="project-item"><a href="/asciidoc-php/">asciidoc-php</a></li>
+<li class="project-item project-current"><a href="/message-bus/" aria-current="page">message-bus</a></li>
+<li class="project-item"><a href="/messagebus-event/">messagebus-event</a></li>
+</ul>
+</nav>
+<nav class="version-selector" aria-label="Versions" data-version-selector>
+<p class="nav-label">Versions</p>
+<ul>
+<li class="version-item version-latest"><a href="/message-bus/v2/contributing.html">v2 <span class="version-flag">(latest)</span></a></li>
+<li class="version-item"><a href="/message-bus/v1/contributing.html" aria-current="page">v1</a></li>
+</ul>
+</nav>
+<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">Toggle dark mode</button>
+<div class="site-search" data-search data-site-index="/search-index.json" data-project-index="/message-bus/search-index.json" data-project-slug="message-bus" data-version-label="v1" hidden>
+<label class="search-label" for="site-search-input">Search</label>
+<input class="search-input" id="site-search-input" type="search" autocomplete="off" spellcheck="false" data-search-input>
+<label class="search-scope-label" for="site-search-scope">Scope</label>
+<select class="search-scope" id="site-search-scope" data-search-scope>
+<option value="version">This version</option>
+<option value="project">All versions</option>
+<option value="site">All projects</option>
+</select>
+<ul class="search-results" data-search-results hidden></ul>
+<p class="search-status" data-search-status aria-live="polite"></p>
+</div>
+</header>
+<aside class="outdated-banner" aria-label="Version notice">
+<p>You are reading <strong>v1</strong>. The current version is <a href="/message-bus/v2/contributing.html">v2</a>.</p>
+</aside>
+<div class="layout">
+<nav class="sidebar" aria-label="On this page">
+<ol class="toc-list">
+<li class="toc-level-2"><a href="#_target_branch">Target Branch</a></li>
+<li class="toc-level-2"><a href="#_running_tests">Running tests</a></li>
+<li class="toc-level-2"><a href="#_benchmarks">Benchmarks</a></li>
+<li class="toc-level-2"><a href="#_quality_tooling">Quality tooling</a></li>
+<li class="toc-level-2"><a href="#_continuous_integration">Continuous integration</a></li>
+<li class="toc-level-2"><a href="#_test_conventions">Test conventions</a></li>
+<li class="toc-level-2"><a href="#_backward_compatibility">Backward compatibility</a></li>
+</ol>
+</nav>
+<main id="main">
+<article class="doc">
+<div class="sect1">
+<h2 id="_target_branch">Target Branch</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Given a current release of 1.0.0</p>
+</div>
+<div class="paragraph">
+<p>The next patch release = 1.0.1
+The next minor = 1.1.0
+The next major = 2.0.0</p>
+</div>
+<div class="paragraph">
+<p>The branching strategy is as follows: (these are the branch names that you will target your PRs to)
+The Current release branch will be <code>1.0.x</code> (if still under development)
+The next minor branch will be <code>1.1.x</code>
+The next major branch will be <code>2.0.x</code></p>
+</div>
+<div class="paragraph">
+<p>Please target your pull request to the correct branch:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Documentation improvement: Current release branch</p>
+</li>
+<li>
+<p>Bugfix: Current release branch</p>
+</li>
+<li>
+<p>QA improvement (unit/integration tests, CS fixes, etc.) that does not change code</p>
+</li>
+<li>
+<p>behavior: Next minor 1.1.x</p>
+</li>
+<li>
+<p>New feature/Refactor: Next minor 1.1.x</p>
+</li>
+<li>
+<p>Any Backwards incompatible changes: Next major 2.0.x</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You MUST provide a signoff in your commits for us to accept your
+contribution/patch. You can do this by providing either the --signoff or -s flag when using
+<code>git commit</code>, to certify the <a href="https://developercertificate.org/" rel="noopener">Developer Certificate of Origin</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_running_tests">Running tests</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash hljs" data-lang="bash">composer test             # unit tests only (test/unit)
+composer test-integration # integration tests only (test/integration)
+composer test-all         # both suites
+composer test-coverage    # unit tests + coverage-clover clover.xml</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_benchmarks">Benchmarks</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash hljs" data-lang="bash">composer benchmark # phpbench run --report=aggregate</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Benchmarks live under <code>benchmarks/</code> (config in <code>phpbench.json.dist</code>) and measure pipeline dispatch
+performance, see <a href="/message-bus/v1/benchmark-results.html">Benchmark Results</a> for the latest numbers. This directory
+is harness code, not library source, so it's excluded from <code>mago</code>'s checked <code>[source] paths</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_quality_tooling">Quality tooling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This project uses <a href="https://mago.carthage.software/" rel="noopener">Mago</a> (config in <code>mago.toml</code>) for formatting,
+linting, and static analysis, there is no PHPStan/PHP_CodeSniffer in this repo.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash hljs" data-lang="bash">mago format --check # formatting check
+mago lint           # lint rules
+mago analyze        # static analysis
+mago guard          # structural naming/finality rules</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>mago guard</code>'s structural rules (configured under <code>[[guard.structural.rules]]</code> in <code>mago.toml</code>) enforce
+naming conventions across the codebase: interfaces must be suffixed <code>Interface</code>, traits <code>Trait</code>, and
+exception classes in <code>src/Exception/</code> must be suffixed <code>Exception</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_continuous_integration">Continuous integration</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>The organization's required workflow
+(<a href="https://github.com/webinertia/.github/blob/master/.github/workflows/org-required-ci.yml" rel="noopener"><code>org-required-ci.yml</code></a>)
+runs <code>mago format --check</code>, <code>mago lint</code>, <code>mago analyze</code>, <code>mago guard</code>, and the full PHPUnit suite
+across PHP 8.4/8.5, against lowest/locked/latest dependency sets. Per-package values live in
+<code>webware-ci.json</code> at the repository root.</p>
+</li>
+<li>
+<p><a href="https://github.com/webinertia/message-bus/blob/2.0.x/.github/workflows/backward-compatibility-check.yml" rel="noopener"><code>backward-compatibility-check.yml</code></a>
+runs
+<a href="https://github.com/Roave/BackwardCompatibilityCheck" rel="noopener"><code>roave/backward-compatibility-check</code></a>
+against the last released tag, to catch breaking API changes. SemVer gives no BC guarantee below
+<code>1.0.0</code>, so this only activates once a <code>1.0.0</code>+ tag exists.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_test_conventions">Test conventions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See
+<a href="https://github.com/webinertia/message-bus/blob/2.0.x/.github/instructions/copilot-test-generation-instructions.md" rel="noopener">copilot-test-generation-instructions.md</a>
+for the full set of conventions (naming, <code><mark>[Test]</code>/<code></mark>[CoversClass]</code> attributes, stub vs. mock usage,
+directory layout). In short:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>One test class per source class, mirrored under <code>test/unit/</code>.</p>
+</li>
+<li>
+<p>Methods use the <code>#[Test]</code> attribute with a plain camelCase name describing the scenario: no <code>test</code>
+prefix.</p>
+</li>
+<li>
+<p>Prefer <code>$this-&gt;createStub(...)</code> over <code>$this-&gt;createMock(...)</code> unless you need to assert <em>how</em> a
+dependency was called.</p>
+</li>
+<li>
+<p>Construct real instances for <code>final readonly</code> classes instead of mocking them.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_backward_compatibility">Backward compatibility</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This library is nearing a <code>1.0.0</code> release. Once tagged, avoid breaking changes to any class/interface
+marked <code>@api</code> in its docblock (see <a href="/message-bus/v1/api-reference/index.html">API Reference</a>) without a major version
+bump, <code>roave/backward-compatibility-check</code> enforces this in CI.</p>
+</div>
+</div>
+</div>
+</article>
+</main>
+</div>
+<footer class="site-footer">
+<a class="source-link" href="https://github.com/webinertia/message-bus/blob/2.0.x/docs/v1/contributing.adoc" rel="noopener">Edit this page</a>
+<p class="footer-project">message-bus</p>
+<p class="footer-version">v1</p>
+</footer>
+<script src="/assets/theme.42bf6e.js" defer></script>
+<script src="/assets/nav.1868c9.js" defer></script>
+<script src="/assets/search-core.db0f42.js" defer></script>
+<script src="/assets/search.2912b7.js" defer></script>
+</body>
+</html>

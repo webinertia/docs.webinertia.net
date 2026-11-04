@@ -1,0 +1,714 @@
+{
+    "schemaVersion": 1,
+    "project": {
+        "slug": "message-bus",
+        "title": "message-bus"
+    },
+    "versions": [
+        {
+            "label": "v2",
+            "latest": true,
+            "url": "/message-bus/v2/",
+            "pages": [
+                {
+                    "url": "/message-bus/v2/api-reference/commands-and-queries.html",
+                    "title": "Commands & Queries",
+                    "headings": [
+                        {
+                            "id": "_commandcommandinterface",
+                            "title": "`Command\\CommandInterface`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_commandnamedcommandinterface_commandnamedcommandtrait",
+                            "title": "`Command\\NamedCommandInterface` / `Command\\NamedCommandTrait`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_commandcommandresultinterface_commandcommandresult",
+                            "title": "`Command\\CommandResultInterface` / `Command\\CommandResult`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_queryqueryinterface",
+                            "title": "`Query\\QueryInterface`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_queryqueryresultinterface_queryqueryresult",
+                            "title": "`Query\\QueryResultInterface` / `Query\\QueryResult`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_handler_method_naming",
+                            "title": "Handler method naming",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Command\\CommandInterface Marker interface extending MessageInterface . Application commands (write operations) implement this. Command\\NamedCommandInterface / Command\\NamedCommandTrait NamedCommandInterface adds getCommandName(): string to a command. It declares no property: interface properties are always public, so the contract stays method-only and implementors keep control of their storage. NamedCommandTrait implements it with a $commandName property that defaults to the using class name (late-bound, so it reports the concrete command class) and is writable only from inside the class. The distinct name keeps it clear of a command's own $name property. Command\\CommandResultInterface / Command\\CommandResult CommandResultInterface extends both CommandInterface and ResultInterface , adding getCommand(): CommandInterface , so a command result can be treated as a message and re-enter the pipeline. CommandResult is the concrete, final readonly implementation, wrapping the original CommandInterface , a MessageStatus , and the raw result value. Query\\QueryInterface Marker interface extending MessageInterface . Application queries (read operations) implement this. Query\\QueryResultInterface / Query\\QueryResult Mirrors the command result types: QueryResultInterface extends QueryInterface and ResultInterface , adding getQuery(): QueryInterface . QueryResult is the final readonly implementation wrapping the original QueryInterface , a MessageStatus , and the raw result value. Handler method naming CommandHandlerInterface / QueryHandlerInterface declare no method, so each handler declares the method its wired strategy expects: Under the default HandleStrategy , declare handle(MessageInterface $message): ResultInterface and narrow to the concrete message with Type\\instance_of() or instanceof . Under ClassnameStrategy , declare a method named from the message's short class name ( CreateUser -&gt; createUser ), typed directly to that class. See Strategy and Usage Examples ."
+                },
+                {
+                    "url": "/message-bus/v2/api-reference/configuration.html",
+                    "title": "Configuration & Container Integration",
+                    "headings": [
+                        {
+                            "id": "_configprovider",
+                            "title": "`ConfigProvider`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_default_wiring",
+                            "title": "Default wiring",
+                            "level": 3
+                        },
+                        {
+                            "id": "_mapping_a_commandquery_to_a_handler",
+                            "title": "Mapping a command/query to a handler",
+                            "level": 3
+                        },
+                        {
+                            "id": "_choosing_a_strategy",
+                            "title": "Choosing a strategy",
+                            "level": 3
+                        },
+                        {
+                            "id": "_adding_custom_middleware",
+                            "title": "Adding custom middleware",
+                            "level": 3
+                        },
+                        {
+                            "id": "_dispatching_a_message",
+                            "title": "Dispatching a message",
+                            "level": 3
+                        },
+                        {
+                            "id": "_containermessagebusfactory",
+                            "title": "`Container\\MessageBusFactory`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_containermessagehandlerresolverfactory",
+                            "title": "`Container\\MessageHandlerResolverFactory`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_containermiddlewarepipefactory",
+                            "title": "`Container\\MiddlewarePipeFactory`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_containermessagehandlermiddlewarefactory",
+                            "title": "`Container\\MessageHandlerMiddlewareFactory`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_functionscollection_mapper_factory",
+                            "title": "`functions\\collection_mapper_factory()`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_functionspriority_queue_reducer_factory",
+                            "title": "`functions\\priority_queue_reducer_factory()`",
+                            "level": 2
+                        }
+                    ],
+                    "text": "ConfigProvider Registered via extra.laminas.config-provider in composer.json for auto-discovery by Laminas\\ConfigAggregator /Mezzio. Provides: getDependencies() : the aliases / factories / invokables needed to wire up MessageBus , MessageHandlerResolver , MiddlewarePipe , MessageHandlerMiddleware , and the strategies in a PSR-11 container. getCommandMap() / getQueryMap() : empty by default; consuming applications extend this configuration (under the command_map / query_map keys) to map their own command/query classes to handler classes. getMiddleware() : the default middleware_pipeline entry, registering Middleware\\MessageHandlerMiddleware at ConfigProvider::DEFAULT_PRIORITY (1) so it runs last. All three sections are merged under the top-level Webware\\MessageBus\\MessageBusInterface::class config key. Default wiring 'aliases' =&gt; [ MessageBusInterface::class =&gt; MessageBus::class, MiddlewarePipelineInterface::class =&gt; MiddlewarePipe::class, MessageHandlerResolverInterface::class =&gt; MessageHandlerResolver::class, StrategyInterface::class =&gt; Strategy\\HandleStrategy::class, ], 'factories' =&gt; [ MessageBus::class =&gt; Container\\MessageBusFactory::class, MessageHandlerResolver::class =&gt; Container\\MessageHandlerResolverFactory::class, MiddlewarePipe::class =&gt; Container\\MiddlewarePipeFactory::class, Middleware\\MessageHandlerMiddleware::class =&gt; Container\\MessageHandlerMiddlewareFactory::class, ], 'invokables' =&gt; [ Handler\\EmptyPipelineHandler::class =&gt; Handler\\EmptyPipelineHandler::class, Strategy\\HandleStrategy::class =&gt; Strategy\\HandleStrategy::class, Strategy\\ClassnameStrategy::class =&gt; Strategy\\ClassnameStrategy::class, ], Mapping a command/query to a handler Extend the command_map / query_map in your application's config and register the handler in the container: use Webware\\MessageBus\\MessageBusInterface; use Webware\\MessageBus\\ConfigProvider; return [ 'dependencies' =&gt; [ 'factories' =&gt; [ App\\Command\\CreateUserHandler::class"
+                },
+                {
+                    "url": "/message-bus/v2/api-reference/exceptions.html",
+                    "title": "Exceptions",
+                    "headings": [],
+                    "text": "All exceptions live under Webware\\MessageBus\\Exception . Exception Extends / Implements Thrown when InvalidConfigurationException InvalidArgumentException Configuration is missing or malformed, a message has no command_map / query_map entry, or a resolved handler service is not an instance of the expected handler marker ( MessageHandlerResolver , MiddlewarePipeFactory , collection_mapper_factory ). ServiceNotFoundException RuntimeException , Psr\\Container\\NotFoundExceptionInterface A required service ( config , a mapped handler, or MiddlewarePipelineInterface ) isn't registered in the container ( MessageHandlerResolver , Container\\MessageBusFactory , Container\\MiddlewarePipeFactory ). HandlerMethodNotFoundException InvalidArgumentException The resolved handler has no callable method for the strategy's method name ( MessageHandlerMiddleware ). MessageException RuntimeException The pipeline reaches Handler\\EmptyPipelineHandler without ever producing a ResultInterface . NextHandlerAlreadyCalledException DomainException Next::handle() is invoked more than once on the same instance. Each exception exposes named static constructors (for example ServiceNotFoundException::fromService() , HandlerMethodNotFoundException::forMethod() , InvalidConfigurationException::fromUnMappedMessage() ) rather than public constructors, keeping error messages consistent at every call site."
+                },
+                {
+                    "url": "/message-bus/v2/api-reference/index.html",
+                    "title": "API Reference",
+                    "headings": [],
+                    "text": "Component-by-component reference for everything under src/ . Interfaces are tagged in their docblocks as @api (a public contract consumers implement/call directly) or @internal (wiring/glue that consumers should not depend on directly). Message Bus &amp; Core Contracts : MessageBusInterface , MessageBus , MessageInterface , MessageHandlerInterface , ResultInterface , StatusInterface / MessageStatus , and handler resolution. Middleware Pipeline : MiddlewarePipe , Next , MiddlewareInterface , PipelineHandlerInterface , and the built-in MessageHandlerMiddleware / EmptyPipelineHandler . Commands &amp; Queries : the Command\\ and Query\\ namespaces. Strategy : StrategyInterface , HandleStrategy , and ClassnameStrategy . Configuration &amp; Container Integration : ConfigProvider and the PSR-11 factories, with code samples. Exceptions : the exception types thrown by this library."
+                },
+                {
+                    "url": "/message-bus/v2/api-reference/message-bus.html",
+                    "title": "Message Bus & Core Contracts",
+                    "headings": [
+                        {
+                            "id": "_messageinterface",
+                            "title": "`MessageInterface`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_messagebusinterface_messagebus",
+                            "title": "`MessageBusInterface` / `MessageBus`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_pipelinehandlerinterface",
+                            "title": "`PipelineHandlerInterface`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_messagehandlerinterface",
+                            "title": "`MessageHandlerInterface`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_commandhandlerinterface_queryhandlerinterface",
+                            "title": "`CommandHandlerInterface` / `QueryHandlerInterface`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_messagehandlerresolverinterface_messagehandlerresolver",
+                            "title": "`MessageHandlerResolverInterface` / `MessageHandlerResolver`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_resultinterface_statusinterface_messagestatus",
+                            "title": "`ResultInterface` / `StatusInterface` / `MessageStatus`",
+                            "level": 2
+                        }
+                    ],
+                    "text": "MessageInterface Marker interface for anything that can travel through the bus. Command\\CommandInterface and Query\\QueryInterface both extend it; ResultInterface also extends it so a result can itself be passed to the terminal handler in the pipeline. MessageBusInterface / MessageBus MessageBusInterface extends PipelineHandlerInterface and is the public entry point of the library. Call handle(MessageInterface $message): ResultInterface to dispatch a command or query. MessageBus is the default implementation. It's a thin, final readonly wrapper that delegates directly to a MiddlewarePipelineInterface instance. PipelineHandlerInterface The pipeline continuation contract: handle(MessageInterface $message): ResultInterface . Implemented by MessageBusInterface , MiddlewarePipelineInterface , Next , and Handler\\EmptyPipelineHandler . It names the rest of the pipeline that a middleware hands control to, and is what MiddlewareInterface::process() receives as its second argument. MessageHandlerInterface The common supertype for all resolved handlers. CommandHandlerInterface and QueryHandlerInterface both extend it, so a single type covers every handler the resolver can return. CommandHandlerInterface / QueryHandlerInterface Marker interfaces for application-defined command and query handlers. Each extends MessageHandlerInterface and declares no method: the wired StrategyInterface chooses which method is called (see Strategy ). MessageHandlerResolverInterface / MessageHandlerResolver Given a message, looks up its mapped handler class in the command_map / query_map configuration (see Configuration ) and fetches it from the PSR-11 container. Returns MessageHandlerInterface . Throws Exception\\InvalidConfigurationException if the message's class has no map entry or the resolved handler is not an instance of the expected marker, and Exception\\ServiceNotFoundException if the config service or the mapped handler class isn't registered in the container. ResultInterface / StatusInterf"
+                },
+                {
+                    "url": "/message-bus/v2/api-reference/middleware-pipeline.html",
+                    "title": "Middleware Pipeline",
+                    "headings": [
+                        {
+                            "id": "_middlewareinterface",
+                            "title": "`MiddlewareInterface`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_middlewarepipelineinterface_middlewarepipe",
+                            "title": "`MiddlewarePipelineInterface` / `MiddlewarePipe`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_next",
+                            "title": "`Next`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_middlewaremessagehandlermiddleware",
+                            "title": "`Middleware\\MessageHandlerMiddleware`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_handleremptypipelinehandler",
+                            "title": "`Handler\\EmptyPipelineHandler`",
+                            "level": 2
+                        }
+                    ],
+                    "text": "MiddlewareInterface The PSR-15-style contract for a single middleware step: public function process( MessageInterface $message, PipelineHandlerInterface $next, ): ResultInterface; Implementations decide whether/when to call $next-&gt;handle() and can act on the message or result before/after doing so. MiddlewarePipelineInterface / MiddlewarePipe MiddlewarePipelineInterface extends both MiddlewareInterface and PipelineHandlerInterface , and adds pipe(MiddlewareInterface $middleware): void for registering middleware. MiddlewarePipe is the default implementation, backed by an SplQueue . Calling handle() runs the queued middleware against an EmptyPipelineHandler as the terminal handler (see below). Cloning a MiddlewarePipe performs a deep clone of its internal queue so pipelines can be reused safely. Next Internal, single-use handler that walks the middleware queue one step at a time. Each call to handle() dequeues the next middleware, clones itself for the remaining queue, and invokes the middleware with that clone as its $next . Once the queue is exhausted it delegates to the configured EmptyPipelineHandler . Calling handle() on the same Next instance twice throws Exception\\NextHandlerAlreadyCalledException . Middleware\\MessageHandlerMiddleware The library's built-in terminal middleware, registered by ConfigProvider with the lowest default priority so it runs last. Its constructor takes a MessageHandlerResolverInterface and a StrategyInterface . process() resolves the handler, asks the strategy for the method name, and guards it with is_callable() . A handler without that method throws Exception\\HandlerMethodNotFoundException . It then invokes the method and forwards the returned ResultInterface to $next-&gt;handle() , so middleware registered after it can inspect the result. A handler method that returns a non- ResultInterface value raises a TypeError . Handler\\EmptyPipelineHandler The default terminal handler used when a MiddlewarePipe 's queue is exhausted. If the "
+                },
+                {
+                    "url": "/message-bus/v2/api-reference/strategy.html",
+                    "title": "Strategy",
+                    "headings": [
+                        {
+                            "id": "_strategyinterface",
+                            "title": "`StrategyInterface`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_strategyhandlestrategy",
+                            "title": "`Strategy\\HandleStrategy`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_strategyclassnamestrategy",
+                            "title": "`Strategy\\ClassnameStrategy`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_wiring",
+                            "title": "Wiring",
+                            "level": 2
+                        }
+                    ],
+                    "text": "StrategyInterface public function handlerMethod(MessageInterface $message): string; The single authority for choosing the handler method name. MessageHandlerMiddleware depends only on this interface and never knows which concrete strategy is wired. Strategy\\HandleStrategy The default. Returns 'handle' , so handle-based handlers keep working. Strategy\\ClassnameStrategy Opt-in. Inflects the message's short class name with lcfirst : App\\Command\\CreateUser becomes createUser . Wiring The default ConfigProvider aliases StrategyInterface to HandleStrategy . Opt into named methods by changing that alias: use Webware\\MessageBus\\Strategy\\ClassnameStrategy; use Webware\\MessageBus\\StrategyInterface; return [ 'dependencies' =&gt; [ 'aliases' =&gt; [ StrategyInterface::class =&gt; ClassnameStrategy::class, ], ], ];"
+                },
+                {
+                    "url": "/message-bus/v2/benchmark-results.html",
+                    "title": "Benchmark Results (V2)",
+                    "headings": [
+                        {
+                            "id": "_running_the_benchmarks",
+                            "title": "Running the benchmarks",
+                            "level": 2
+                        },
+                        {
+                            "id": "_whats_measured",
+                            "title": "What's measured",
+                            "level": 2
+                        },
+                        {
+                            "id": "_latest_results",
+                            "title": "Latest results",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Benchmarks are written with PHPBench and live under benchmarks/ . They are not part of mago 's checked [source] paths , this is harness/tooling code, not library source, so it isn't held to the same lint/analyze conventions as src/ . Running the benchmarks composer benchmark This runs phpbench run --report=aggregate using phpbench.json.dist . What's measured MiddlewarePipeBench : dispatches a command through MessageBus -&gt; MiddlewarePipe with a single pass-through middleware ahead of the terminal MessageHandlerMiddleware . Handler resolution is stubbed with a static resolver wired to the default HandleStrategy , so the number isolates the cost of pipeline traversal plus the strategy seam ( StrategyInterface::handlerMethod() , the is_callable() guard, and dynamic dispatch). MessageBusDispatchBench : the total cost of handling a command end-to-end through a container-backed setup (Laminas ServiceManager ), including real MessageHandlerResolver container lookups, at 1 and 5 pass-through middleware. Latest results Recorded on 2026-08-13, PHP 8.4.24 (Linux x86_64, WSL2), 1000 revolutions / 5 iterations per subject. Benchmark Subject Set Mode (μs) RStDev MiddlewarePipeBench benchHandle 1 middleware 4.112266 ±2.04% MessageBusDispatchBench benchHandle 1 middleware 6.089102 ±8.65% MessageBusDispatchBench benchHandle 5 middleware 7.209593 ±2.70% V2 adds the strategy seam to MessageHandlerMiddleware : resolve the handler, call StrategyInterface::handlerMethod() , guard the name with is_callable() , dispatch through the dynamic method call, and coerce the result to ResultInterface . The 1-middleware dispatch figure carries a wide ±8.65% RStDev, so treat that single delta as indicative rather than precise. Re-run composer benchmark and update this table after any change likely to affect pipeline or resolver performance."
+                },
+                {
+                    "url": "/message-bus/v2/contributing.html",
+                    "title": "Contributing",
+                    "headings": [
+                        {
+                            "id": "_target_branch",
+                            "title": "Target Branch",
+                            "level": 2
+                        },
+                        {
+                            "id": "_running_tests",
+                            "title": "Running tests",
+                            "level": 2
+                        },
+                        {
+                            "id": "_benchmarks",
+                            "title": "Benchmarks",
+                            "level": 2
+                        },
+                        {
+                            "id": "_quality_tooling",
+                            "title": "Quality tooling",
+                            "level": 2
+                        },
+                        {
+                            "id": "_continuous_integration",
+                            "title": "Continuous integration",
+                            "level": 2
+                        },
+                        {
+                            "id": "_test_conventions",
+                            "title": "Test conventions",
+                            "level": 2
+                        },
+                        {
+                            "id": "_backward_compatibility",
+                            "title": "Backward compatibility",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Target Branch Given a current release of 1.1.0 The next patch release = 1.1.1 The next minor = 1.2.0 The next major = 2.0.0 The branching strategy is as follows (these are the branch names that you will target your PRs to): The current release branch will be 1.1.x (if still under development) The next minor branch will be 1.2.x The next major branch will be 2.0.x Please target your pull request to the correct branch: Documentation improvement: Current release branch Bugfix: Current release branch QA improvement (unit/integration tests, CS fixes, etc.) that does not change code behavior: Next minor 1.2.x New feature/Refactor: Next minor 1.2.x Any Backwards incompatible changes: Next major 2.0.x You MUST provide a signoff in your commits for us to accept your contribution/patch. You can do this by providing either the --signoff or -s flag when using git commit , to certify the Developer Certificate of Origin . Running tests composer test # unit tests only (test/unit) composer test-integration # integration tests only (test/integration) composer test-all # both suites composer test-coverage # unit tests + coverage-clover clover.xml Benchmarks composer benchmark # phpbench run --report=aggregate Benchmarks live under benchmarks/ (config in phpbench.json.dist ) and measure pipeline dispatch performance. See Benchmark Results for the latest numbers. This directory is harness code, not library source, so it's excluded from mago 's checked [source] paths . Quality tooling This project uses Mago (config in mago.toml ) for formatting, linting, and static analysis. There is no PHPStan/PHP_CodeSniffer in this repo. mago format --check # formatting check mago lint # lint rules mago analyze # static analysis mago guard # structural naming/finality rules mago guard 's structural rules (configured under [[guard.structural.rules]] in mago.toml ) enforce naming conventions across the codebase: interfaces must be suffixed Interface , traits Trait , and exception classes in src/Excepti"
+                },
+                {
+                    "url": "/message-bus/v2/flow-charts.html",
+                    "title": "Execution Flow",
+                    "headings": [
+                        {
+                            "id": "_overview",
+                            "title": "Overview",
+                            "level": 2
+                        },
+                        {
+                            "id": "custom-middleware-example",
+                            "title": "Custom middleware example",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Solid arrows below are the message travelling forward through the pipeline, in priority order; dashed arrows are the result on its way back. A result doesn't exist until MessageHandlerMiddleware resolves the handler, asks the wired strategy which method to call, and invokes it. The result returns directly to the caller from there. Notice no dashed arrow ever touches earlier middleware, since it has no part on that side. GitHub renders Mermaid diagrams as scalable SVG, so you can zoom in (browser zoom, or pinch/scroll on the diagram) for a closer look. Each diagram below is also wrapped in a collapsible &lt;details&gt; block and laid out top-to-bottom so it stays readable without needing to scroll sideways. Overview Expand/collapse diagram flowchart TD App([Application]) --&gt;|handle message| Bus[MessageBus] Bus --&gt;|handle message| Pipe[MiddlewarePipe] Pipe --&gt;|process message, next| MW[Registered middleware] MW --&gt;|next.handle message| HandlerMW[MessageHandlerMiddleware] HandlerMW --&gt;|resolve message| Resolver[MessageHandlerResolver] HandlerMW --&gt;|handlerMethod message| Strategy[Strategy] HandlerMW --&gt;|invoke method| Handler[Command/QueryHandler] Handler -.-&gt;|Result| HandlerMW HandlerMW -.-&gt;|Result| Pipe Pipe -.-&gt;|Result| Bus Bus -.-&gt;|Result| App MessageHandlerMiddleware is just the last entry in the pipeline (lowest default priority), so any middleware you register runs before the handler is resolved. Custom middleware example Using the LoggingMiddleware from Writing custom middleware , registered at priority 10 (above MessageHandlerMiddleware 's default priority of 1 ): Expand/collapse diagram flowchart TD Bus[MessageBus] --&gt;|process CreateUser, next| Log[LoggingMiddleware&lt;br/&gt;priority 10] Log --&gt;|next.handle message| HandlerMW[MessageHandlerMiddleware&lt;br/&gt;priority 1, runs last] HandlerMW --&gt;|resolve + handlerMethod| Resolver[Resolver + Strategy] HandlerMW --&gt;|invoke method| Handler[CreateUserHandler] Handler "
+                },
+                {
+                    "url": "/message-bus/v2/getting-started.html",
+                    "title": "Getting Started",
+                    "headings": [
+                        {
+                            "id": "_requirements",
+                            "title": "Requirements",
+                            "level": 2
+                        },
+                        {
+                            "id": "_installation",
+                            "title": "Installation",
+                            "level": 2
+                        },
+                        {
+                            "id": "_what_gets_registered",
+                            "title": "What gets registered",
+                            "level": 2
+                        },
+                        {
+                            "id": "_dispatching_your_first_message",
+                            "title": "Dispatching your first message",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Requirements PHP ~8.4.1 || ~8.5.0 A PSR-11 container. This library is developed and tested against laminas/laminas-servicemanager ( ^4.0.0 ), but any PSR-11 implementation works. Installation composer require webware/message-bus The package registers Webware\\MessageBus\\ConfigProvider via composer's extra.laminas.config-provider , so it's auto-discovered by Laminas\\ConfigAggregator\\ConfigAggregator (and therefore by Mezzio). No manual config file is needed. If you're not using ConfigAggregator , merge the provider's output into your own configuration manually: $config = array_merge_recursive( (new Webware\\MessageBus\\ConfigProvider())(), /* ...your application config... */ ); What gets registered ConfigProvider wires up the following services (see Configuration &amp; Container Integration for details): MessageBusInterface -&gt; MessageBus MiddlewarePipelineInterface -&gt; MiddlewarePipe MessageHandlerResolverInterface -&gt; MessageHandlerResolver StrategyInterface -&gt; Strategy\\HandleStrategy (the default; alias it to Strategy\\ClassnameStrategy to opt into named handler methods) Middleware\\MessageHandlerMiddleware (registered in the pipeline by default, at the lowest priority so it runs last) None of this does anything useful yet, though. You still need to: Define a command or query (implementing Command\\CommandInterface or Query\\QueryInterface ). Define its handler (implementing CommandHandlerInterface or QueryHandlerInterface ). These are marker interfaces with no required method; declare the method your wired strategy expects ( handle() under the default strategy). Map the message class to the handler class, and register the handler in your container. See Usage Examples for a complete walk-through. Dispatching your first message Once a command/handler pair is mapped and registered (see Usage Examples ), dispatching is just: /** @var Psr\\Container\\ContainerInterface $container */ $bus = $container-&gt;get(Webware\\MessageBus\\MessageBusInterface::class); $result = $b"
+                },
+                {
+                    "url": "/message-bus/v2/index.html",
+                    "title": "message-bus Documentation (v2)",
+                    "headings": [
+                        {
+                            "id": "_contents",
+                            "title": "Contents",
+                            "level": 2
+                        }
+                    ],
+                    "text": "A command/query message bus for Mezzio /PSR-11 applications. A message (command or query) is handed to a MessageBusInterface , which runs it through a middleware pipeline. The final middleware in that pipeline resolves the mapped handler, chooses the handler method through a StrategyInterface , and invokes it. The result flows back out through the pipeline as a ResultInterface . See Execution Flow for diagrams of how a message moves through the pipeline and back. Contents Execution Flow : diagrams of message dispatch and result flow through the pipeline. Getting Started : installation, requirements, and wiring the bus into your application. Usage Examples : defining commands/queries and handlers, dispatching messages, and writing custom middleware. API Reference : what each class/interface does, grouped by area: Message Bus &amp; Core Contracts Middleware Pipeline Commands &amp; Queries Strategy Configuration &amp; Container Integration Exceptions Benchmark Results : pipeline dispatch performance measured with PHPBench. Contributing : running tests, quality tooling, and CI expectations."
+                },
+                {
+                    "url": "/message-bus/v2/usage-examples.html",
+                    "title": "Usage Examples",
+                    "headings": [
+                        {
+                            "id": "defining-a-command-and-its-handler",
+                            "title": "Defining a command and its handler",
+                            "level": 2
+                        },
+                        {
+                            "id": "_named_method_handlers",
+                            "title": "Named-method handlers",
+                            "level": 3
+                        },
+                        {
+                            "id": "_mapping_the_command_to_its_handler",
+                            "title": "Mapping the command to its handler",
+                            "level": 2
+                        },
+                        {
+                            "id": "_dispatching",
+                            "title": "Dispatching",
+                            "level": 2
+                        },
+                        {
+                            "id": "writing-custom-middleware",
+                            "title": "Writing custom middleware",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Defining a command and its handler A command is any class implementing Command\\CommandInterface : namespace App\\Command; use Webware\\MessageBus\\Command\\CommandInterface; final readonly class CreateUser implements CommandInterface { public function __construct( public string $email, ) {} } CommandHandlerInterface is a marker. It declares no method, so the handler declares the method its wired strategy expects. Under the default HandleStrategy that method is handle() : namespace App\\Command; use Psl\\Type; use Webware\\MessageBus\\Command\\CommandInterface; use Webware\\MessageBus\\Command\\CommandResult; use Webware\\MessageBus\\CommandHandlerInterface; use Webware\\MessageBus\\MessageInterface; use Webware\\MessageBus\\MessageStatus; use Webware\\MessageBus\\ResultInterface; final readonly class CreateUserHandler implements CommandHandlerInterface { public function handle(MessageInterface $message): ResultInterface { // narrow from the broad message type to this specific command $command = Type\\instance_of(CreateUser::class)-&gt;assert($message); // ...create the user... $userId = 42; return new CommandResult($command, MessageStatus::Success, $userId); } } There is no #[Override] on handle() : the marker declares nothing to override. The method parameter is yours to choose. Declaring it as MessageInterface|CommandInterface is runtime-safe (the union is at least as wide as MessageInterface ) and tells static analysis that this handler only receives commands, without narrowing too early. You still need Type\\instance_of() (or an instanceof check) to narrow to CreateUser itself. Named-method handlers Opt into ClassnameStrategy and the handler declares a method named after the message's short class name ( CreateUser -&gt; createUser ), typed directly to the concrete class: namespace App\\Command; use Webware\\MessageBus\\Command\\CommandResult; use Webware\\MessageBus\\CommandHandlerInterface; use Webware\\MessageBus\\MessageStatus; final readonly class CreateUserHandler implements CommandHand"
+                }
+            ]
+        },
+        {
+            "label": "v1",
+            "latest": false,
+            "url": "/message-bus/v1/",
+            "pages": [
+                {
+                    "url": "/message-bus/v1/api-reference/commands-and-queries.html",
+                    "title": "Commands & Queries",
+                    "headings": [
+                        {
+                            "id": "_commandcommandinterface",
+                            "title": "`Command\\CommandInterface`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_commandnamedcommandinterface_commandnamedcommandtrait",
+                            "title": "`Command\\NamedCommandInterface` / `Command\\NamedCommandTrait`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_commandcommandresultinterface_commandcommandresult",
+                            "title": "`Command\\CommandResultInterface` / `Command\\CommandResult`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_queryqueryinterface",
+                            "title": "`Query\\QueryInterface`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_queryqueryresultinterface_queryqueryresult",
+                            "title": "`Query\\QueryResultInterface` / `Query\\QueryResult`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_narrowing_a_handlers_incoming_message",
+                            "title": "Narrowing a handler's incoming message",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Command\\CommandInterface Marker interface extending MessageInterface . Application commands (write operations) implement this. Command\\NamedCommandInterface / Command\\NamedCommandTrait NamedCommandInterface adds getName(): string to a command. NamedCommandTrait provides a default implementation backed by a protected $name property, falling back to static::class when $name isn't set. Command\\CommandResultInterface / Command\\CommandResult CommandResultInterface extends both CommandInterface and ResultInterface , so a command result can be treated as a message and re-enter the pipeline. CommandResult is the concrete, final readonly implementation, wrapping the original CommandInterface , a MessageStatus , and the raw result value. Query\\QueryInterface Marker interface extending MessageInterface . Application queries (read operations) implement this. Query\\QueryResultInterface / Query\\QueryResult Mirrors the Command result types: QueryResultInterface extends QueryInterface and ResultInterface , and QueryResult is the final readonly implementation wrapping the original QueryInterface , a MessageStatus , and the raw result value. Narrowing a handler's incoming message CommandHandlerInterface / QueryHandlerInterface::handle() is typed to the broad MessageInterface . Parameter types are contravariant, so an implementation can widen but never narrow that type, however declaring it as a union such as MessageInterface|CommandInterface (or MessageInterface|QueryInterface ) is still a legal override, since the union is at least as wide as MessageInterface alone. This costs nothing at runtime but gives static analysis (and readers) CommandInterface / QueryInterface typing without an assertion. To narrow further, down to the concrete command/query class, this library's own tests use Psl\\Type::instance_of() , see Usage Examples for a complete example."
+                },
+                {
+                    "url": "/message-bus/v1/api-reference/configuration.html",
+                    "title": "Configuration & Container Integration",
+                    "headings": [
+                        {
+                            "id": "_configprovider",
+                            "title": "`ConfigProvider`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_mapping_a_commandquery_to_a_handler",
+                            "title": "Mapping a command/query to a handler",
+                            "level": 3
+                        },
+                        {
+                            "id": "_adding_custom_middleware",
+                            "title": "Adding custom middleware",
+                            "level": 3
+                        },
+                        {
+                            "id": "_dispatching_a_message",
+                            "title": "Dispatching a message",
+                            "level": 3
+                        },
+                        {
+                            "id": "_containermessagebusfactory",
+                            "title": "`Container\\MessageBusFactory`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_containermessagehandlerresolverfactory",
+                            "title": "`Container\\MessageHandlerResolverFactory`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_containermiddlewarepipefactory",
+                            "title": "`Container\\MiddlewarePipeFactory`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_containermessagehandlermiddlewarefactory",
+                            "title": "`Container\\MessageHandlerMiddlewareFactory`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_functionscollection_mapper_factory",
+                            "title": "`functions\\collection_mapper_factory()`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_functionspriority_queue_reducer_factory",
+                            "title": "`functions\\priority_queue_reducer_factory()`",
+                            "level": 2
+                        }
+                    ],
+                    "text": "ConfigProvider Registered via extra.laminas.config-provider in composer.json for auto-discovery by Laminas\\ConfigAggregator /Mezzio. Provides: getDependencies() : the aliases / factories / invokables needed to wire up MessageBus , MessageHandlerResolver , MiddlewarePipe , and MessageHandlerMiddleware in a PSR-11 container. getCommandMap() / getQueryMap() : empty by default; consuming applications extend this configuration (under the command_map / query_map keys) to map their own command/query classes to handler classes. getMiddleware() : the default middleware_pipeline entry, registering Middleware\\MessageHandlerMiddleware at ConfigProvider::DEFAULT_PRIORITY (1) so it runs last. All three sections are merged under the top-level Webware\\MessageBus\\MessageBusInterface::class config key. Mapping a command/query to a handler Extend the command_map / query_map in your application's config and register the handler in the container: use Webware\\MessageBus\\MessageBusInterface; use Webware\\MessageBus\\ConfigProvider; return [ 'dependencies' =&gt; [ 'factories' =&gt; [ App\\Command\\CreateUserHandler::class =&gt; App\\Command\\CreateUserHandlerFactory::class, ], ], MessageBusInterface::class =&gt; [ ConfigProvider::COMMAND_MAP_KEY =&gt; [ App\\Command\\CreateUser::class =&gt; App\\Command\\CreateUserHandler::class, ], ], ]; App\\Command\\CreateUser must implement Command\\CommandInterface , and App\\Command\\CreateUserHandler must implement CommandHandlerInterface . Queries follow the same pattern under ConfigProvider::QUERY_MAP_KEY with Query\\QueryInterface / QueryHandlerInterface . Adding custom middleware Register the middleware as a service, then add it to middleware_pipeline with a priority . Higher priority runs earlier; MessageHandlerMiddleware is registered at priority 1 so it runs last by default, give your middleware a higher priority to run before the handler is resolved: use Webware\\MessageBus\\ConfigProvider; return [ 'dependencies' =&gt; [ 'factories' =&gt; [ App\\Middleware\\Lo"
+                },
+                {
+                    "url": "/message-bus/v1/api-reference/exceptions.html",
+                    "title": "Exceptions",
+                    "headings": [],
+                    "text": "All exceptions live under Webware\\MessageBus\\Exception . Exception Extends / Implements Thrown when InvalidConfigurationException InvalidArgumentException Configuration is missing or malformed, a message has no command_map / query_map entry, or a resolved handler service doesn't implement MessageHandlerInterface ( MessageHandlerResolver , MiddlewarePipeFactory ). ServiceNotFoundException RuntimeException , Psr\\Container\\NotFoundExceptionInterface A required service ( config , a mapped handler, or MiddlewarePipelineInterface ) isn't registered in the container ( MessageHandlerResolver , Container\\MessageBusFactory ). MessageException RuntimeException The pipeline reaches Handler\\EmptyPipelineHandler without ever producing a ResultInterface . NextHandlerAlreadyCalledException DomainException Next::handle() is invoked more than once on the same instance. Each exception exposes named static constructors (e.g. ServiceNotFoundException::fromService() , InvalidConfigurationException::fromUnMappedMessage() ) rather than public constructors, keeping error messages consistent at every call site."
+                },
+                {
+                    "url": "/message-bus/v1/api-reference/index.html",
+                    "title": "API Reference",
+                    "headings": [],
+                    "text": "Component-by-component reference for everything under src/ . Interfaces are tagged in their docblocks as @api (a public contract consumers implement/call directly) or @internal (wiring/glue that consumers should not depend on directly). Message Bus &amp; Core Contracts : MessageBusInterface , MessageBus , MessageInterface , ResultInterface , StatusInterface / MessageStatus , and handler resolution. Middleware Pipeline : MiddlewarePipe , Next , MiddlewareInterface , and the built-in MessageHandlerMiddleware / EmptyPipelineHandler . Commands &amp; Queries : the Command\\ and Query\\ namespaces. Configuration &amp; Container Integration : ConfigProvider and the PSR-11 factories, with code samples. Exceptions : the exception types thrown by this library."
+                },
+                {
+                    "url": "/message-bus/v1/api-reference/message-bus.html",
+                    "title": "Message Bus & Core Contracts",
+                    "headings": [
+                        {
+                            "id": "_messageinterface",
+                            "title": "`MessageInterface`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_messagebusinterface_messagebus",
+                            "title": "`MessageBusInterface` / `MessageBus`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_messagehandlerinterface",
+                            "title": "`MessageHandlerInterface`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_commandhandlerinterface_queryhandlerinterface",
+                            "title": "`CommandHandlerInterface` / `QueryHandlerInterface`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_messagehandlerresolverinterface_messagehandlerresolver",
+                            "title": "`MessageHandlerResolverInterface` / `MessageHandlerResolver`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_resultinterface_statusinterface_messagestatus",
+                            "title": "`ResultInterface` / `StatusInterface` / `MessageStatus`",
+                            "level": 2
+                        }
+                    ],
+                    "text": "MessageInterface Marker interface for anything that can travel through the bus. Command\\CommandInterface and Query\\QueryInterface both extend it; ResultInterface also extends it so a result can itself be passed to the final handler in the pipeline. MessageBusInterface / MessageBus MessageBusInterface extends MessageHandlerInterface and is the public entry point of the library, call handle(MessageInterface $message): ResultInterface to dispatch a command or query. MessageBus is the default implementation. It's a thin, final readonly wrapper that delegates directly to a MiddlewarePipelineInterface instance. MessageHandlerInterface The common contract implemented by anything capable of handling a message: MessageBusInterface , CommandHandlerInterface , QueryHandlerInterface , middleware pipelines, and the internal Next / EmptyPipelineHandler classes all implement this single handle() method. CommandHandlerInterface / QueryHandlerInterface Marker interfaces for application-defined command and query handlers. Both simply re-declare handle(MessageInterface $message): ResultInterface for clarity/type-narrowing at the edges of an application; there is no behavioral difference between the two beyond intent. MessageHandlerResolverInterface / MessageHandlerResolver Given a message, looks up its mapped handler class in the command_map / query_map configuration (see Configuration ) and fetches it from the PSR-11 container. Throws Exception\\InvalidConfigurationException if the message's class has no map entry, and Exception\\ServiceNotFoundException if the mapped handler class isn't registered in the container. ResultInterface / StatusInterface / MessageStatus ResultInterface extends MessageInterface and exposes getResult(): mixed and getStatus(): StatusInterface , letting a handler's result be sent back through the pipeline as a message. Command\\CommandResult and Query\\QueryResult (see Commands &amp; Queries ) are the concrete implementations used by this library. StatusInterface"
+                },
+                {
+                    "url": "/message-bus/v1/api-reference/middleware-pipeline.html",
+                    "title": "Middleware Pipeline",
+                    "headings": [
+                        {
+                            "id": "_middlewareinterface",
+                            "title": "`MiddlewareInterface`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_middlewarepipelineinterface_middlewarepipe",
+                            "title": "`MiddlewarePipelineInterface` / `MiddlewarePipe`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_next",
+                            "title": "`Next`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_middlewaremessagehandlermiddleware",
+                            "title": "`Middleware\\MessageHandlerMiddleware`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_handleremptypipelinehandler",
+                            "title": "`Handler\\EmptyPipelineHandler`",
+                            "level": 2
+                        }
+                    ],
+                    "text": "MiddlewareInterface The PSR-15-style contract for a single middleware step: `process(MessageInterface $message, MessageHandlerInterface $handler): ResultInterface`. Implementations decide whether/when to call $handler-&gt;handle() and can act on the message or result before/after doing so. MiddlewarePipelineInterface / MiddlewarePipe MiddlewarePipelineInterface extends both MiddlewareInterface and MessageHandlerInterface , and adds pipe(MiddlewareInterface $middleware): void for registering middleware. MiddlewarePipe is the default implementation, backed by an SplQueue . Calling handle() runs the queued middleware against an EmptyPipelineHandler as the terminal handler (see below). Cloning a MiddlewarePipe performs a deep clone of its internal queue so pipelines can be reused safely. Next Internal, single-use handler that walks the middleware queue one step at a time. Each call to handle() dequeues the next middleware, clones itself for the remaining queue, and invokes the middleware with that clone as its $handler . Once the queue is exhausted it delegates to the configured EmptyPipelineHandler . Calling handle() on the same Next instance twice throws Exception\\NextHandlerAlreadyCalledException . Middleware\\MessageHandlerMiddleware The library's built-in \"terminal\" middleware, registered by ConfigProvider with the lowest default priority so it runs last. It uses a MessageHandlerResolverInterface to resolve and invoke the handler mapped to the incoming message, then forwards the resulting ResultInterface on to the next handler in the pipeline so any middleware that runs after it (e.g. logging) can inspect the result. Handler\\EmptyPipelineHandler The default terminal handler used when a MiddlewarePipe 's queue is exhausted. If the message it receives is already a ResultInterface (i.e. a result produced by MessageHandlerMiddleware ), it returns it as-is; otherwise it throws Exception\\MessageException , since no handler ever produced a result."
+                },
+                {
+                    "url": "/message-bus/v1/benchmark-results.html",
+                    "title": "Benchmark Results",
+                    "headings": [
+                        {
+                            "id": "_running_the_benchmarks",
+                            "title": "Running the benchmarks",
+                            "level": 2
+                        },
+                        {
+                            "id": "_whats_measured",
+                            "title": "What's measured",
+                            "level": 2
+                        },
+                        {
+                            "id": "_latest_results",
+                            "title": "Latest results",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Benchmarks are written with PHPBench and live under benchmarks/ . They are not part of mago 's checked [source] paths , this is harness/tooling code, not library source, so it isn't held to the same lint/analyze conventions as src/ . Running the benchmarks composer benchmark This runs phpbench run --report=aggregate using phpbench.json.dist . What's measured MiddlewarePipeBench : dispatches a command through MessageBus -&gt; MiddlewarePipe with a single pass-through middleware ahead of the terminal MessageHandlerMiddleware . Handler resolution is stubbed with a static resolver so the number isolates the cost of pipeline traversal itself (queue cloning/dequeue per Next invocation). MessageBusDispatchBench : the total cost of handling a command end-to-end through a container-backed setup (Laminas ServiceManager ), including real MessageHandlerResolver container lookups, matching how the bus is actually wired in an application, at 1 and 5 pass-through middleware. Latest results Recorded on 2026-08-06, PHP 8.4.24 (Linux x86_64, WSL2), 1000 revolutions / 5 iterations per subject. Benchmark Subject Set Mode (μs) RStDev MiddlewarePipeBench benchHandle 1 middleware 3.363319 ±3.81% MessageBusDispatchBench benchHandle 1 middleware 4.650117 ±1.62% MessageBusDispatchBench benchHandle 5 middleware 6.909352 ±1.93% MessageBusDispatchBench rose by roughly 0.35-0.56μs from the previous baseline (4.300098μs / 6.345840μs) after MessageHandlerResolver::resolve() gained a command/query handler-type check (rejecting a resolved handler that doesn't implement the expected CommandHandlerInterface / QueryHandlerInterface ). MiddlewarePipeBench , which never touches the resolver, stayed flat, confirming the increase is attributable to that added validation rather than noise. At 1 middleware, MessageBusDispatchBench (real PSR-11 container + config-driven wiring) costs about 1.3μs more than the equivalent MiddlewarePipeBench case, that's the overhead MessageHandlerResolver 's container lookup a"
+                },
+                {
+                    "url": "/message-bus/v1/contributing.html",
+                    "title": "Contributing",
+                    "headings": [
+                        {
+                            "id": "_target_branch",
+                            "title": "Target Branch",
+                            "level": 2
+                        },
+                        {
+                            "id": "_running_tests",
+                            "title": "Running tests",
+                            "level": 2
+                        },
+                        {
+                            "id": "_benchmarks",
+                            "title": "Benchmarks",
+                            "level": 2
+                        },
+                        {
+                            "id": "_quality_tooling",
+                            "title": "Quality tooling",
+                            "level": 2
+                        },
+                        {
+                            "id": "_continuous_integration",
+                            "title": "Continuous integration",
+                            "level": 2
+                        },
+                        {
+                            "id": "_test_conventions",
+                            "title": "Test conventions",
+                            "level": 2
+                        },
+                        {
+                            "id": "_backward_compatibility",
+                            "title": "Backward compatibility",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Target Branch Given a current release of 1.0.0 The next patch release = 1.0.1 The next minor = 1.1.0 The next major = 2.0.0 The branching strategy is as follows: (these are the branch names that you will target your PRs to) The Current release branch will be 1.0.x (if still under development) The next minor branch will be 1.1.x The next major branch will be 2.0.x Please target your pull request to the correct branch: Documentation improvement: Current release branch Bugfix: Current release branch QA improvement (unit/integration tests, CS fixes, etc.) that does not change code behavior: Next minor 1.1.x New feature/Refactor: Next minor 1.1.x Any Backwards incompatible changes: Next major 2.0.x You MUST provide a signoff in your commits for us to accept your contribution/patch. You can do this by providing either the --signoff or -s flag when using git commit , to certify the Developer Certificate of Origin . Running tests composer test # unit tests only (test/unit) composer test-integration # integration tests only (test/integration) composer test-all # both suites composer test-coverage # unit tests + coverage-clover clover.xml Benchmarks composer benchmark # phpbench run --report=aggregate Benchmarks live under benchmarks/ (config in phpbench.json.dist ) and measure pipeline dispatch performance, see Benchmark Results for the latest numbers. This directory is harness code, not library source, so it's excluded from mago 's checked [source] paths . Quality tooling This project uses Mago (config in mago.toml ) for formatting, linting, and static analysis, there is no PHPStan/PHP_CodeSniffer in this repo. mago format --check # formatting check mago lint # lint rules mago analyze # static analysis mago guard # structural naming/finality rules mago guard 's structural rules (configured under [[guard.structural.rules]] in mago.toml ) enforce naming conventions across the codebase: interfaces must be suffixed Interface , traits Trait , and exception classes in src/Excepti"
+                },
+                {
+                    "url": "/message-bus/v1/flow-charts.html",
+                    "title": "Execution Flow",
+                    "headings": [
+                        {
+                            "id": "_overview",
+                            "title": "Overview",
+                            "level": 2
+                        },
+                        {
+                            "id": "custom-middleware-example",
+                            "title": "Custom middleware example",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Solid arrows below are the message travelling forward through the pipeline, in priority order; dashed arrows are the result on its way back. A result doesn't exist until MessageHandlerMiddleware resolves and invokes the handler, and it returns directly to the caller from there, notice no dashed arrow ever touches earlier middleware, since it has no part on that side. GitHub renders Mermaid diagrams as scalable SVG, so you can zoom in (browser zoom, or pinch/scroll on the diagram) for a closer look. Each diagram below is also wrapped in a collapsible &lt;details&gt; block and laid out top-to-bottom so it stays readable without needing to scroll sideways. Overview Expand/collapse diagram flowchart TD App([Application]) --&gt;|handle message| Bus[MessageBus] Bus --&gt;|handle message| Pipe[MiddlewarePipe] Pipe --&gt;|process message, next| MW[Registered middleware] MW --&gt;|next.handle message| HandlerMW[MessageHandlerMiddleware] HandlerMW &lt;--&gt;|resolve message| Resolver[MessageHandlerResolver] HandlerMW --&gt;|handle message| Handler[Command/QueryHandler] Handler -.-&gt;|Result| HandlerMW HandlerMW -.-&gt;|Result| Pipe Pipe -.-&gt;|Result| Bus Bus -.-&gt;|Result| App MessageHandlerMiddleware is just the last entry in the pipeline (lowest default priority), so any middleware you register runs before the handler is resolved. Custom middleware example Using the LoggingMiddleware from Writing custom middleware , registered at priority 10 (above MessageHandlerMiddleware 's default priority of 1 ): Expand/collapse diagram flowchart TD Bus[MessageBus] --&gt;|process CreateUser, next| Log[LoggingMiddleware&lt;br/&gt;priority 10] Log --&gt;|next.handle message| HandlerMW[MessageHandlerMiddleware&lt;br/&gt;priority 1, runs last] HandlerMW --&gt;|handle message| Handler[CreateUserHandler] Handler -.-&gt;|CommandResult| HandlerMW HandlerMW -.-&gt;|CommandResult| Bus"
+                },
+                {
+                    "url": "/message-bus/v1/getting-started.html",
+                    "title": "Getting Started",
+                    "headings": [
+                        {
+                            "id": "_requirements",
+                            "title": "Requirements",
+                            "level": 2
+                        },
+                        {
+                            "id": "_installation",
+                            "title": "Installation",
+                            "level": 2
+                        },
+                        {
+                            "id": "_what_gets_registered",
+                            "title": "What gets registered",
+                            "level": 2
+                        },
+                        {
+                            "id": "_dispatching_your_first_message",
+                            "title": "Dispatching your first message",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Requirements PHP ~8.4.1 || ~8.5.0 A PSR-11 container. This library is developed and tested against laminas/laminas-servicemanager ( ^4.0.0 ), but any PSR-11 implementation works. Installation composer require webware/message-bus The package registers Webware\\MessageBus\\ConfigProvider via composer's extra.laminas.config-provider , so it's auto-discovered by Laminas\\ConfigAggregator\\ConfigAggregator (and therefore by Mezzio), no manual config file needed. If you're not using ConfigAggregator , merge the provider's output into your own configuration manually: $config = array_merge_recursive( (new Webware\\MessageBus\\ConfigProvider())(), /* ...your application config... */ ); What gets registered ConfigProvider wires up the following services (see Configuration &amp; Container Integration for details): MessageBusInterface -&gt; MessageBus MiddlewarePipelineInterface -&gt; MiddlewarePipe MessageHandlerResolverInterface -&gt; MessageHandlerResolver Middleware\\MessageHandlerMiddleware (registered in the pipeline by default, at the lowest priority so it runs last) None of this does anything useful yet, though, you still need to: Define a command or query (implementing Command\\CommandInterface or Query\\QueryInterface ). Define its handler (implementing CommandHandlerInterface or QueryHandlerInterface ). Map the message class to the handler class, and register the handler in your container. See Usage Examples for a complete walk-through. Dispatching your first message Once a command/handler pair is mapped and registered (see Usage Examples ), dispatching is just: /** @var Psr\\Container\\ContainerInterface $container */ $bus = $container-&gt;get(Webware\\MessageBus\\MessageBusInterface::class); $result = $bus-&gt;handle(new App\\Command\\CreateUser('jane@example.com')); $result-&gt;getStatus(); // MessageStatus::Success or ::Failure $result-&gt;getResult(); // whatever the handler returned"
+                },
+                {
+                    "url": "/message-bus/v1/index.html",
+                    "title": "message-bus Documentation (v1)",
+                    "headings": [
+                        {
+                            "id": "_contents",
+                            "title": "Contents",
+                            "level": 2
+                        }
+                    ],
+                    "text": "A command/query message bus for Mezzio /PSR-11 applications. A message (command or query) is handed to a MessageBusInterface , which runs it through a middleware pipeline. The final middleware in that pipeline resolves and invokes the appropriate handler, and the result flows back out through the pipeline as a ResultInterface . See Execution Flow for diagrams of how a message moves through the pipeline and back. Contents Execution Flow : diagrams of message dispatch and result flow through the pipeline. Getting Started : installation, requirements, and wiring the bus into your application. Usage Examples : defining commands/queries and handlers, dispatching messages, and writing custom middleware. API Reference : what each class/interface does, grouped by area: Message Bus &amp; Core Contracts Middleware Pipeline Commands &amp; Queries Configuration &amp; Container Integration Exceptions Benchmark Results : pipeline dispatch performance measured with PHPBench. Contributing : running tests, quality tooling, and CI expectations."
+                },
+                {
+                    "url": "/message-bus/v1/usage-examples.html",
+                    "title": "Usage Examples",
+                    "headings": [
+                        {
+                            "id": "defining-a-command-and-its-handler",
+                            "title": "Defining a command and its handler",
+                            "level": 2
+                        },
+                        {
+                            "id": "_mapping_the_command_to_its_handler",
+                            "title": "Mapping the command to its handler",
+                            "level": 2
+                        },
+                        {
+                            "id": "_dispatching",
+                            "title": "Dispatching",
+                            "level": 2
+                        },
+                        {
+                            "id": "writing-custom-middleware",
+                            "title": "Writing custom middleware",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Defining a command and its handler A command is any class implementing Command\\CommandInterface : namespace App\\Command; use Webware\\MessageBus\\Command\\CommandInterface; final readonly class CreateUser implements CommandInterface { public function __construct( public string $email, ) {} } CommandHandlerInterface::handle() is typed to the broad MessageInterface , but parameter types are contravariant, an implementation is free to widen a parameter type, just never narrow it. Declaring the parameter as MessageInterface|CommandInterface is still a valid override (the union includes MessageInterface , so it's just as wide as the interface requires), and it tells static analysis tools (and readers) that this handler only ever receives commands, without any runtime cost: namespace App\\Command; use Override; use Psl\\Type; use Webware\\MessageBus\\Command\\CommandInterface; use Webware\\MessageBus\\Command\\CommandResult; use Webware\\MessageBus\\CommandHandlerInterface; use Webware\\MessageBus\\MessageInterface; use Webware\\MessageBus\\MessageStatus; use Webware\\MessageBus\\ResultInterface; final readonly class CreateUserHandler implements CommandHandlerInterface { #[Override] public function handle(MessageInterface|CommandInterface $message): ResultInterface { // narrow further, from \"some command\" to this specific command $command = Type\\instance_of(CreateUser::class)-&gt;assert($message); // ...create the user... $userId = 42; return new CommandResult($command, MessageStatus::Success, $userId); } } The union only buys you the CommandInterface half of the contract at the type level (useful if you need something like NamedCommandInterface::getName() before knowing the concrete class); you still need Type\\instance_of() (or an instanceof check) to narrow to CreateUser itself, since nothing else guarantees that a given CommandInterface is the one this handler expects. Mapping the command to its handler Extend the command_map in your application config and register the handler with your "
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-mode="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exceptions | message-bus | Webware Documentation</title>
+<link rel="canonical" href="https://docs.webinertia.net/message-bus/v2/api-reference/exceptions.html">
+<link rel="icon" href="/assets/logo.a56b33.svg">
+<link rel="stylesheet" href="/assets/asciidoctor.426b47.css">
+<link rel="stylesheet" href="/assets/site.44458d.css">
+<link rel="stylesheet" href="/assets/accent.b7bf58.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script>
+(function () {
+  var stored = null;
+  try {
+    stored = window.localStorage.getItem('asciidoc-php-theme');
+  } catch (error) {
+    stored = null;
+  }
+  var mode = document.documentElement.getAttribute('data-theme-mode');
+  var theme;
+  if (stored === 'light' || stored === 'dark') {
+    theme = stored;
+  } else if (mode === 'light' || mode === 'dark') {
+    theme = mode;
+  } else {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<a class="site-brand" href="/"><img class="site-logo" src="/assets/logo.a56b33.svg" alt="Webware Documentation" width="34" height="34" decoding="async"></a>
+<p class="project-name">message-bus</p>
+<p class="version-label">v2</p>
+<nav class="project-switcher" aria-label="Projects" data-project-switcher>
+<p class="nav-label">Projects</p>
+<ul>
+<li class="project-item"><a href="/asciidoc-php/">asciidoc-php</a></li>
+<li class="project-item project-current"><a href="/message-bus/" aria-current="page">message-bus</a></li>
+<li class="project-item"><a href="/messagebus-event/">messagebus-event</a></li>
+</ul>
+</nav>
+<nav class="version-selector" aria-label="Versions" data-version-selector>
+<p class="nav-label">Versions</p>
+<ul>
+<li class="version-item version-latest"><a href="/message-bus/v2/api-reference/exceptions.html" aria-current="page">v2 <span class="version-flag">(latest)</span></a></li>
+<li class="version-item"><a href="/message-bus/v1/api-reference/exceptions.html">v1</a></li>
+</ul>
+</nav>
+<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">Toggle dark mode</button>
+<div class="site-search" data-search data-site-index="/search-index.json" data-project-index="/message-bus/search-index.json" data-project-slug="message-bus" data-version-label="v2" hidden>
+<label class="search-label" for="site-search-input">Search</label>
+<input class="search-input" id="site-search-input" type="search" autocomplete="off" spellcheck="false" data-search-input>
+<label class="search-scope-label" for="site-search-scope">Scope</label>
+<select class="search-scope" id="site-search-scope" data-search-scope>
+<option value="version">This version</option>
+<option value="project">All versions</option>
+<option value="site">All projects</option>
+</select>
+<ul class="search-results" data-search-results hidden></ul>
+<p class="search-status" data-search-status aria-live="polite"></p>
+</div>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="On this page">
+<ol class="toc-list">
+</ol>
+</nav>
+<main id="main">
+<article class="doc">
+<div class="paragraph">
+<p>All exceptions live under <code>Webware\MessageBus\Exception</code>.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Exception</th>
+<th class="tableblock halign-left valign-top">Extends / Implements</th>
+<th class="tableblock halign-left valign-top">Thrown when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>InvalidConfigurationException</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>InvalidArgumentException</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Configuration is missing or malformed, a message has no <code>command_map</code>/<code>query_map</code> entry, or a resolved handler service is not an instance of the expected handler marker (<code>MessageHandlerResolver</code>, <code>MiddlewarePipeFactory</code>, <code>collection_mapper_factory</code>).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ServiceNotFoundException</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RuntimeException</code>, <code>Psr\Container\NotFoundExceptionInterface</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A required service (<code>config</code>, a mapped handler, or <code>MiddlewarePipelineInterface</code>) isn't registered in the container (<code>MessageHandlerResolver</code>, <code>Container\MessageBusFactory</code>, <code>Container\MiddlewarePipeFactory</code>).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>HandlerMethodNotFoundException</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>InvalidArgumentException</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The resolved handler has no callable method for the strategy's method name (<code>MessageHandlerMiddleware</code>).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MessageException</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RuntimeException</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The pipeline reaches <code>Handler\EmptyPipelineHandler</code> without ever producing a <code>ResultInterface</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NextHandlerAlreadyCalledException</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DomainException</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Next::handle()</code> is invoked more than once on the same instance.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Each exception exposes named static constructors (for example <code>ServiceNotFoundException::fromService()</code>,
+<code>HandlerMethodNotFoundException::forMethod()</code>, <code>InvalidConfigurationException::fromUnMappedMessage()</code>)
+rather than public constructors, keeping error messages consistent at every call site.</p>
+</div>
+</article>
+</main>
+</div>
+<footer class="site-footer">
+<a class="source-link" href="https://github.com/webinertia/message-bus/blob/2.0.x/docs/v2/api-reference/exceptions.adoc" rel="noopener">Edit this page</a>
+<p class="footer-project">message-bus</p>
+<p class="footer-version">v2</p>
+</footer>
+<script src="/assets/theme.42bf6e.js" defer></script>
+<script src="/assets/nav.1868c9.js" defer></script>
+<script src="/assets/search-core.db0f42.js" defer></script>
+<script src="/assets/search.2912b7.js" defer></script>
+</body>
+</html>

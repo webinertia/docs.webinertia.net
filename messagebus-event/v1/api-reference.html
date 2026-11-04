@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-mode="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API Reference | messagebus-event | Webware Documentation</title>
+<link rel="canonical" href="https://docs.webinertia.net/messagebus-event/v1/api-reference.html">
+<link rel="icon" href="/assets/logo.a56b33.svg">
+<link rel="stylesheet" href="/assets/asciidoctor.426b47.css">
+<link rel="stylesheet" href="/assets/site.44458d.css">
+<link rel="stylesheet" href="/assets/accent.4e16a5.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script>
+(function () {
+  var stored = null;
+  try {
+    stored = window.localStorage.getItem('asciidoc-php-theme');
+  } catch (error) {
+    stored = null;
+  }
+  var mode = document.documentElement.getAttribute('data-theme-mode');
+  var theme;
+  if (stored === 'light' || stored === 'dark') {
+    theme = stored;
+  } else if (mode === 'light' || mode === 'dark') {
+    theme = mode;
+  } else {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<a class="site-brand" href="/"><img class="site-logo" src="/assets/logo.a56b33.svg" alt="Webware Documentation" width="34" height="34" decoding="async"></a>
+<p class="project-name">messagebus-event</p>
+<p class="version-label">v1</p>
+<nav class="project-switcher" aria-label="Projects" data-project-switcher>
+<p class="nav-label">Projects</p>
+<ul>
+<li class="project-item"><a href="/asciidoc-php/">asciidoc-php</a></li>
+<li class="project-item"><a href="/message-bus/">message-bus</a></li>
+<li class="project-item project-current"><a href="/messagebus-event/" aria-current="page">messagebus-event</a></li>
+</ul>
+</nav>
+<nav class="version-selector" aria-label="Versions" data-version-selector>
+<p class="nav-label">Versions</p>
+<ul>
+<li class="version-item version-latest"><a href="/messagebus-event/v2/api-reference.html">v2 <span class="version-flag">(latest)</span></a></li>
+<li class="version-item"><a href="/messagebus-event/v1/api-reference.html" aria-current="page">v1</a></li>
+</ul>
+</nav>
+<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">Toggle dark mode</button>
+<div class="site-search" data-search data-site-index="/search-index.json" data-project-index="/messagebus-event/search-index.json" data-project-slug="messagebus-event" data-version-label="v1" hidden>
+<label class="search-label" for="site-search-input">Search</label>
+<input class="search-input" id="site-search-input" type="search" autocomplete="off" spellcheck="false" data-search-input>
+<label class="search-scope-label" for="site-search-scope">Scope</label>
+<select class="search-scope" id="site-search-scope" data-search-scope>
+<option value="version">This version</option>
+<option value="project">All versions</option>
+<option value="site">All projects</option>
+</select>
+<ul class="search-results" data-search-results hidden></ul>
+<p class="search-status" data-search-status aria-live="polite"></p>
+</div>
+</header>
+<aside class="outdated-banner" aria-label="Version notice">
+<p>You are reading <strong>v1</strong>. The current version is <a href="/messagebus-event/v2/api-reference.html">v2</a>.</p>
+</aside>
+<div class="layout">
+<nav class="sidebar" aria-label="On this page">
+<ol class="toc-list">
+<li class="toc-level-2"><a href="#_core_event_types">Core Event Types</a></li>
+<li class="toc-level-3"><a href="#_eventinterface">`EventInterface`</a></li>
+<li class="toc-level-3"><a href="#_event">`Event`</a></li>
+<li class="toc-level-3"><a href="#_eventpropagationinterface_eventpropagationtrait">`EventPropagationInterface` / `EventPropagationTrait`</a></li>
+<li class="toc-level-3"><a href="#_eventawareinterface_eventawaretrait">`EventAwareInterface` / `EventAwareTrait`</a></li>
+<li class="toc-level-3"><a href="#_listenerinterface">`ListenerInterface`</a></li>
+<li class="toc-level-2"><a href="#_command_events">Command Events</a></li>
+<li class="toc-level-2"><a href="#_query_events">Query Events</a></li>
+<li class="toc-level-2"><a href="#_middleware">Middleware</a></li>
+<li class="toc-level-2"><a href="#_container_factories">Container Factories</a></li>
+<li class="toc-level-2"><a href="#configprovider">`ConfigProvider`</a></li>
+<li class="toc-level-3"><a href="#_listeners_config_shape">`listeners` config shape</a></li>
+<li class="toc-level-3"><a href="#_listener_providers_config_shape">`listener_providers` config shape</a></li>
+</ol>
+</nav>
+<main id="main">
+<article class="doc">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>All classes live under the <code>Webware\MessageBus\Event</code> namespace (PSR-4 root: <code>src/</code>).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_core_event_types">Core Event Types</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_eventinterface"><code>EventInterface</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">interface EventInterface
+{
+    public function getName(): string;
+    public function getParam(string $name, mixed $default = null): mixed;
+    /** @return array&lt;string, mixed&gt; */
+    public function getParams(): array;
+    public function getTarget(): ?object;
+    public function setName(string $name): void;
+    public function setParam(string $name, mixed $value): void;
+    /** @param array&lt;string, mixed&gt; $params */
+    public function setParams(array $params): void;
+    public function setTarget(object $target): void;
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_event"><code>Event</code></h3>
+<div class="paragraph">
+<p>Default <code>EventInterface</code> implementation. Also implements <code>EventPropagationInterface</code> via
+<code>EventPropagationTrait</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">class Event implements EventInterface, EventPropagationInterface
+{
+    /** @param array&lt;string, mixed&gt; $params */
+    public function __construct(
+        ?string $name = null,
+        ?object $target = null,
+        array $params = [],
+    ) {}
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If <code>$name</code> is omitted, <code>getName()</code> falls back to <code>static::class</code> - useful for the <code>Command\&#42;</code>/<code>Query\&#42;</code>
+subclasses below, which don't set a name explicitly.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_eventpropagationinterface_eventpropagationtrait"><code>EventPropagationInterface</code> / <code>EventPropagationTrait</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">interface EventPropagationInterface
+{
+    public function isPropagationStopped(): bool;
+    public function stopPropagation(): void;
+}
+
+trait EventPropagationTrait
+{
+    protected bool $propagationStopped = false;
+    public function isPropagationStopped(): bool;
+    public function stopPropagation(bool $flag = true): void;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The trait's <code>stopPropagation()</code> accepts an optional <code>bool $flag = true</code>, letting callers re-enable
+propagation (<code>stopPropagation(false)</code>) even though the interface only requires a no-argument method.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_eventawareinterface_eventawaretrait"><code>EventAwareInterface</code> / <code>EventAwareTrait</code></h3>
+<div class="paragraph">
+<p>Lets a value (typically a <code>CommandResultInterface</code>/<code>QueryResultInterface</code>) carry a domain event that the
+post-handle middleware should dispatch alongside the built-in <code>*PostHandleEvent</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">interface EventAwareInterface
+{
+    public function getEvent(): ?EventInterface;
+    public function setEvent(EventInterface $event): void;
+}
+
+trait EventAwareTrait
+{
+    public function getEvent(): ?EventInterface;
+    public function setEvent(EventInterface $event): void;
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_listenerinterface"><code>ListenerInterface</code></h3>
+<div class="paragraph">
+<p>Marker/callable-shape interface for object listeners (as opposed to plain closures or <code>callable</code> strings).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">interface ListenerInterface
+{
+    public function __invoke(EventInterface $event): void;
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_command_events">Command Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>Webware\MessageBus\Event\Command</code>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong><code>CommandPreHandleEvent</code></strong>: <code>extends Event</code>. Constructed with a <code>CommandInterface $command</code>
+(<code>getTarget()</code> returns the command). <code>getCommand(): CommandInterface</code>.</p>
+</li>
+<li>
+<p><strong><code>CommandPostHandleEvent</code></strong>: <code>extends Event</code>. Constructed with a <code>CommandResultInterface $result</code>
+(<code>getTarget()</code> returns the result). <code>getCommand(): CommandInterface</code> (delegates to
+<code>$result-&gt;getCommand()</code>), <code>getResult(): CommandResultInterface</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_query_events">Query Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>Webware\MessageBus\Event\Query</code>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong><code>QueryPreHandleEvent</code></strong>: <code>extends Event</code>. Constructed with a <code>QueryInterface $query</code>.
+<code>getQuery(): QueryInterface</code>.</p>
+</li>
+<li>
+<p><strong><code>QueryPostHandleEvent</code></strong>: <code>extends Event</code>. Constructed with a <code>QueryResultInterface $result</code>.
+<code>getQuery(): QueryInterface</code> (delegates to <code>$result-&gt;getQuery()</code>), <code>getResult(): QueryResultInterface</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_middleware">Middleware</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>Webware\MessageBus\Event\Middleware</code>, all implementing <code>Webware\MessageBus\MiddlewareInterface</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Class</th>
+<th class="tableblock halign-left valign-top">Dispatches</th>
+<th class="tableblock halign-left valign-top">Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CommandPreHandleMiddleware</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CommandPreHandleEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>$message instanceof CommandInterface</code>, dispatches then calls <code>$handler-&gt;handle($message)</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CommandPostHandleMiddleware</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CommandPostHandleEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>$message instanceof EventAwareInterface</code> with a non-null event, dispatches that event first. If <code>$message instanceof CommandResultInterface</code>, dispatches <code>CommandPostHandleEvent</code> and returns <code>$message</code> directly (does not call <code>$handler-&gt;handle()</code>). Otherwise forwards to <code>$handler-&gt;handle($message)</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>QueryPreHandleMiddleware</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>QueryPreHandleEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Same pattern as <code>CommandPreHandleMiddleware</code>, gated on <code>QueryInterface</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>QueryPostHandleMiddleware</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>QueryPostHandleEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Same pattern as <code>CommandPostHandleMiddleware</code>, gated on <code>QueryResultInterface</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Each middleware's constructor takes a single <code>Psr\EventDispatcher\EventDispatcherInterface $eventDispatcher</code>.</p>
+</div>
+<div class="paragraph">
+<p>Because <code>webware/message-bus</code>'s <code>MessageHandlerMiddleware</code> forwards the handler's <code>ResultInterface</code> back
+into the pipeline as the next "message" (<code>$handler-&gt;handle($result)</code>), a <code>*PostHandleMiddleware</code> placed
+<em>after</em> it in priority order receives the result - not the original command/query - as <code>$message</code>. This is
+why the pipeline priorities matter: pre-handle middleware needs a higher priority than the message handler,
+post-handle middleware needs a lower one.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_container_factories">Container Factories</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>Webware\MessageBus\Event\Container</code>, all <code>@internal</code> - wired automatically by <code>ConfigProvider</code>, not
+intended for direct instantiation by consumers:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>CommandPreHandleMiddlewareFactory</code>, <code>CommandPostHandleMiddlewareFactory</code>,
+<code>QueryPreHandleMiddlewareFactory</code>, <code>QueryPostHandleMiddlewareFactory</code> - each resolves
+<code>Psr\EventDispatcher\EventDispatcherInterface</code> from the container and constructs the corresponding
+middleware.</p>
+</li>
+<li>
+<p><code>ListenerProviderAggregateFactory</code> - builds a <code>Phly\EventDispatcher\ListenerProvider\ListenerProviderAggregate</code>
+from the <code>listeners</code> / <code>listener_providers</code> config (see below), attaching a
+<code>PrioritizedListenerProvider</code> (for shape entries with a <code>priority</code>) and an <code>AttachableListenerProvider</code>
+(for everything else) to it, plus any additional listener providers registered under
+<code>listener_providers</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configprovider"><code>ConfigProvider</code></h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">final readonly class ConfigProvider
+{
+    public const string LISTENER_KEY = 'listeners';
+    public const string LISTENER_PROVIDER_KEY = 'listener_providers';
+
+    public function __invoke(): array;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Returned config shape:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">[
+    'dependencies' =&gt; [
+        'aliases' =&gt; [
+            Psr\EventDispatcher\EventDispatcherInterface::class =&gt; Phly\EventDispatcher\EventDispatcher::class,
+            Psr\EventDispatcher\ListenerProviderInterface::class =&gt; Phly\EventDispatcher\ListenerProvider\ListenerProviderAggregate::class,
+        ],
+        'factories' =&gt; [
+            // ListenerProviderAggregate::class and the four *Middleware::class =&gt; *Factory::class entries
+        ],
+    ],
+    Webware\MessageBus\MessageBusInterface::class =&gt; [
+        // BusProvider::MIDDLEWARE_PIPELINE_KEY
+        'middleware_pipeline' =&gt; [
+            ['middleware' =&gt; Middleware\CommandPreHandleMiddleware::class, 'priority' =&gt; 100],
+            ['middleware' =&gt; Middleware\CommandPostHandleMiddleware::class, 'priority' =&gt; -100],
+        ],
+    ],
+    'listeners' =&gt; [],
+    'listener_providers' =&gt; [],
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note the aliases assume <code>phly/phly-event-dispatcher</code>'s concrete <code>EventDispatcher</code> class - its constructor
+requires a <code>ListenerProviderInterface</code>, so it needs its own factory registered
+(<code>Phly\EventDispatcher\EventDispatcherFactory</code>) in any container you assemble; this package does not
+register that factory for you (see <a href="/messagebus-event/v1/getting-started.html">Getting Started</a>).</p>
+</div>
+<div class="sect2">
+<h3 id="_listeners_config_shape"><code>listeners</code> config shape</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">array&lt;class-string, array&lt;int, string|array{listener: callable|class-string, priority?: int}&gt;&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Keyed by event class (or any object type dispatched through the event dispatcher). Each entry is either:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A plain string - a service id to resolve from the container, or (if not registered) a <code>callable</code> string
+such as a function name.</p>
+</li>
+<li>
+<p>A shape array <code>['listener' =&gt; callable|class-string, 'priority' =&gt; int]</code> - <code>priority</code> is optional; when
+present, the listener is attached to the <code>PrioritizedListenerProvider</code> (descending priority order), and
+when absent, to the <code>AttachableListenerProvider</code> (attach order, deduplicated).</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_listener_providers_config_shape"><code>listener_providers</code> config shape</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">array&lt;class-string&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A list of service ids resolving to <code>Psr\EventDispatcher\ListenerProviderInterface</code> implementations. Ids
+that aren't registered in the container are silently skipped.</p>
+</div>
+</div>
+</div>
+</div>
+</article>
+</main>
+</div>
+<footer class="site-footer">
+<a class="source-link" href="https://github.com/webinertia/messagebus-event/blob/2.0.x/docs/v1/api-reference.adoc" rel="noopener">Edit this page</a>
+<p class="footer-project">messagebus-event</p>
+<p class="footer-version">v1</p>
+</footer>
+<script src="/assets/theme.42bf6e.js" defer></script>
+<script src="/assets/nav.1868c9.js" defer></script>
+<script src="/assets/search-core.db0f42.js" defer></script>
+<script src="/assets/search.2912b7.js" defer></script>
+</body>
+</html>

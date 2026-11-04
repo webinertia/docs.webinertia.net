@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-mode="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Usage Reference | Asciidoc Php | Webware Documentation</title>
+<link rel="canonical" href="https://docs.webinertia.net/asciidoc-php/v1/usage.html">
+<link rel="icon" href="/assets/logo.a56b33.svg">
+<link rel="stylesheet" href="/assets/asciidoctor.426b47.css">
+<link rel="stylesheet" href="/assets/site.44458d.css">
+<link rel="stylesheet" href="/assets/accent.4e16a5.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script>
+(function () {
+  var stored = null;
+  try {
+    stored = window.localStorage.getItem('asciidoc-php-theme');
+  } catch (error) {
+    stored = null;
+  }
+  var mode = document.documentElement.getAttribute('data-theme-mode');
+  var theme;
+  if (stored === 'light' || stored === 'dark') {
+    theme = stored;
+  } else if (mode === 'light' || mode === 'dark') {
+    theme = mode;
+  } else {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<a class="site-brand" href="/"><img class="site-logo" src="/assets/logo.a56b33.svg" alt="Webware Documentation" width="34" height="34" decoding="async"></a>
+<p class="project-name">Asciidoc Php</p>
+<p class="version-label">v1</p>
+<nav class="project-switcher" aria-label="Projects" data-project-switcher>
+<p class="nav-label">Projects</p>
+<ul>
+<li class="project-item project-current"><a href="/asciidoc-php/" aria-current="page">asciidoc-php</a></li>
+<li class="project-item"><a href="/message-bus/">message-bus</a></li>
+<li class="project-item"><a href="/messagebus-event/">messagebus-event</a></li>
+</ul>
+</nav>
+<nav class="version-selector" aria-label="Versions" data-version-selector>
+<p class="nav-label">Versions</p>
+<ul>
+<li class="version-item version-latest"><a href="/asciidoc-php/v1/usage.html" aria-current="page">v1 <span class="version-flag">(latest)</span></a></li>
+</ul>
+</nav>
+<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">Toggle dark mode</button>
+<div class="site-search" data-search data-site-index="/search-index.json" data-project-index="/asciidoc-php/search-index.json" data-project-slug="asciidoc-php" data-version-label="v1" hidden>
+<label class="search-label" for="site-search-input">Search</label>
+<input class="search-input" id="site-search-input" type="search" autocomplete="off" spellcheck="false" data-search-input>
+<label class="search-scope-label" for="site-search-scope">Scope</label>
+<select class="search-scope" id="site-search-scope" data-search-scope>
+<option value="version">This version</option>
+<option value="project">All versions</option>
+<option value="site">All projects</option>
+</select>
+<ul class="search-results" data-search-results hidden></ul>
+<p class="search-status" data-search-status aria-live="polite"></p>
+</div>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="On this page">
+<ol class="toc-list">
+<li class="toc-level-2"><a href="#_command_line_interface">Command-line Interface</a></li>
+<li class="toc-level-3"><a href="#_synopsis">Synopsis</a></li>
+<li class="toc-level-3"><a href="#_options">Options</a></li>
+<li class="toc-level-3"><a href="#_examples">Examples</a></li>
+<li class="toc-level-2"><a href="#_php_api">PHP API</a></li>
+<li class="toc-level-3"><a href="#_asciidocconvert">`Asciidoc::convert()`</a></li>
+<li class="toc-level-3"><a href="#_asciidocconvertfile">`Asciidoc::convertFile()`</a></li>
+<li class="toc-level-3"><a href="#api-options">API Option Keys</a></li>
+<li class="toc-level-3"><a href="#_api_examples">API Examples</a></li>
+<li class="toc-level-2"><a href="#yaml-front-matter">YAML Front Matter</a></li>
+<li class="toc-level-3"><a href="#_format">Format</a></li>
+<li class="toc-level-3"><a href="#_behaviour">Behaviour</a></li>
+<li class="toc-level-3"><a href="#_activating_via_cli">Activating via CLI</a></li>
+<li class="toc-level-3"><a href="#_activating_via_api">Activating via API</a></li>
+<li class="toc-level-2"><a href="#_document_attributes_reference">Document Attributes Reference</a></li>
+<li class="toc-level-3"><a href="#_read_only_set_by_the_converter">Read-only (set by the converter)</a></li>
+<li class="toc-level-3"><a href="#_configurable">Configurable</a></li>
+</ol>
+</nav>
+<main id="main">
+<article class="doc">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This document describes every option available when using <code>asciidoc-php</code>,
+both from the command line and from the PHP API.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_command_line_interface">1. Command-line Interface</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>bin/asciidoc-php</code> binary converts one or more AsciiDoc source files to the
+configured output format.</p>
+</div>
+<div class="sect2">
+<h3 id="_synopsis">1.1. Synopsis</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">asciidoc-php [options] FILE [FILE ...]
+asciidoc-php [options] -          # read from STDIN, write to STDOUT</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_options">1.2. Options</h3>
+<div class="sect3">
+<h4 id="_b_backend_backend">1.2.1. <code>-b, --backend BACKEND</code></h4>
+<div class="paragraph">
+<p>Select the output backend.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Value</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>html5</code> <strong>(default)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HTML 5 output via the bundled <code>Html5Converter</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Only <code>html5</code> is implemented in v0.1.  The flag is accepted for
+forward-compatibility.
+</td>
+</tr>
+</table>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_d_doctype_doctype">1.2.2. <code>-d, --doctype DOCTYPE</code></h4>
+<div class="paragraph">
+<p>Set the document type, which controls which structural sections are
+valid and how the header is rendered.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Value</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>article</code> <strong>(default)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Standard article — single-part document</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>book</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Multi-part book — accepts <code>= Part Title</code> level-0 sections</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>manpage</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UNIX man-page — <code>NAME</code>, <code>SYNOPSIS</code>, <code>DESCRIPTION</code> structure</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>inline</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fragment — renders a single inline paragraph, no block wrapper</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_o_out_file_file">1.2.3. <code>-o, --out-file FILE</code></h4>
+<div class="paragraph">
+<p>Write the converted output to <code>FILE</code> instead of the default location.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Use <code>-</code> to write to STDOUT.</p>
+</li>
+<li>
+<p>When converting multiple input files this flag applies to every file in
+sequence; prefer <code>--destination-dir</code> for batch conversion.</p>
+</li>
+</ul>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_d_destination_dir_dir">1.2.4. <code>-D, --destination-dir DIR</code></h4>
+<div class="paragraph">
+<p>Place all converted output files into <code>DIR</code>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The directory is created automatically (including intermediate
+directories) if it does not exist.</p>
+</li>
+<li>
+<p>Each output file is named after the input file with its extension
+replaced by <code>.html</code>.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">asciidoc-php -D html/ docs/*.adoc</code></pre>
+</div>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_b_base_dir_dir">1.2.5. <code>-B, --base-dir DIR</code></h4>
+<div class="paragraph">
+<p>Override the base directory used to resolve <code>include::</code> directives.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Defaults to the directory of the input file when <code>--out-file</code> / a
+positional path is given, or the current working directory for STDIN.</p>
+</li>
+</ul>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_s_safe_mode_mode">1.2.6. <code>-S, --safe-mode MODE</code></h4>
+<div class="paragraph">
+<p>Control which features are available based on trust level.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Value</th>
+<th class="tableblock halign-left valign-top">Integer</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>unsafe</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All features enabled; use only for fully trusted input</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>safe</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1 <strong>(default)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Standard restrictions; external includes allowed from within <code>base-dir</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>server</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Stricter; restricts access to the filesystem above <code>base-dir</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>secure</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">20</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maximum restriction; <code>include::</code> disabled, no filesystem access</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_a_attribute_keyvalue">1.2.7. <code>-a, --attribute KEY[=VALUE]</code></h4>
+<div class="paragraph">
+<p>Set (or unset) a document attribute. Repeatable.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Form</th>
+<th class="tableblock halign-left valign-top">Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-a mykey</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets <code>mykey</code> to an empty string</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-a mykey=myvalue</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets <code>mykey</code> to <code>myvalue</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-a mykey!</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Explicitly unsets <code>mykey</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Attributes set via <code>-a</code> are applied before the document header is read,
+so they can be referenced in the source.  They cannot be overridden by
+attribute entries in the source file (they are <em>locked</em>).</p>
+</div>
+<div class="paragraph">
+<p>Common attributes you may want to set via <code>-a</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Attribute</th>
+<th class="tableblock halign-left valign-top">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>toc</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable table of contents (<code>auto</code>, <code>left</code>, <code>right</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>toc-title</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Override TOC heading text (default: <code>Table of Contents</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sectnums</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Auto-number sections</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>icons</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable icons; set to <code>font</code> to use Font Awesome</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>source-highlighter</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Syntax highlighter (<code>highlight.js</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>skip-front-matter</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Strip leading YAML front matter before parsing (see <a href="#yaml-front-matter">YAML Front Matter</a>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>imagesdir</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Base path prepended to all <code>image::</code> targets</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>experimental</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable UI macro (<code>btn:[]</code>, <code>kbd:[]</code>, <code>menu:[]</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>docinfo</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Inject external docinfo files (<code>shared</code>, <code>private</code>, <code>shared-head</code>, etc.)</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_s_no_header_footer">1.2.8. <code>-s, --no-header-footer</code></h4>
+<div class="paragraph">
+<p>Produce an embedded (fragment) document — omit the <code>&lt;html&gt;</code>, <code>&lt;head&gt;</code>,
+and <code>&lt;body&gt;</code> wrapper elements.  Useful when embedding the output into an
+existing page.</p>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_concurrency_n">1.2.9. <code>--concurrency N</code></h4>
+<div class="paragraph">
+<p>Maximum number of files to convert concurrently when processing multiple
+input files.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Value</th>
+<th class="tableblock halign-left valign-top">Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0</code> <strong>(default)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sequential (no concurrency)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Any positive integer</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cap concurrent conversions at N</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_q_quiet">1.2.10. <code>-q, --quiet</code></h4>
+<div class="paragraph">
+<p>Suppress all informational messages.  Only fatal errors are written to
+<code>STDERR</code>.</p>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_v_verbose">1.2.11. <code>-v, --verbose</code></h4>
+<div class="paragraph">
+<p>Log each converted file to the logger (or <code>STDOUT</code>) after it completes.</p>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_t_timings">1.2.12. <code>-t, --timings</code></h4>
+<div class="paragraph">
+<p>Print a timing breakdown for each file after conversion.</p>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_trace">1.2.13. <code>--trace</code></h4>
+<div class="paragraph">
+<p>Print a full PHP stack trace when a conversion error is caught.  Without
+this flag only the error message is shown.</p>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_h_help">1.2.14. <code>-h, --help</code></h4>
+<div class="paragraph">
+<p>Print the help message and exit with code <code>0</code>.</p>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_version">1.2.15. <code>--version</code></h4>
+<div class="paragraph">
+<p>Print the library version string and exit with code <code>0</code>.</p>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_examples">1.3. Examples</h3>
+<div class="listingblock">
+<div class="title">Convert a single file (output alongside source)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">asciidoc-php docs/guide.adoc</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Convert with left-sidebar TOC</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">asciidoc-php -a toc=left docs/guide.adoc</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Convert multiple files to an output directory</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">asciidoc-php -D html/ docs/*.adoc</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Read from STDIN, write to STDOUT (pipeline)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat fragment.adoc | asciidoc-php -s -o - -</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Set multiple attributes</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">asciidoc-php -a toc=left -a sectnums -a icons=font docs/guide.adoc</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Strip YAML front matter</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">asciidoc-php -a skip-front-matter docs/page.adoc</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Quiet batch conversion</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">asciidoc-php -q -D out/ docs/*.adoc</code></pre>
+</div>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_php_api">2. PHP API</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_asciidocconvert">2.1. <code>Asciidoc::convert()</code></h3>
+<div class="paragraph">
+<p>Convert an AsciiDoc string directly.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-php hljs" data-lang="php">use Webware\AsciidocPhp\Asciidoc;
+
+$html = Asciidoc::convert($source, $opts);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>$source</code> is any valid AsciiDoc string.  <code>$opts</code> is an optional
+associative array — see <a href="#api-options">API Option Keys</a> for all recognised keys.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_asciidocconvertfile">2.2. <code>Asciidoc::convertFile()</code></h3>
+<div class="paragraph">
+<p>Read an AsciiDoc file from disk and convert it.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-php hljs" data-lang="php">$html = Asciidoc::convertFile('/path/to/guide.adoc', $opts);</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Throws <code>\RuntimeException</code> if the file does not exist or cannot be read.</p>
+</li>
+<li>
+<p><code>base_dir</code> defaults to <code>dirname($path)</code> when not supplied.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="api-options">2.3. API Option Keys</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 50.0002%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Key</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>backend</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>string</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>'html5'</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Output backend.  Currently only <code>'html5'</code> is supported.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>doctype</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>string</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>'article'</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Document type: <code>article</code>, <code>book</code>, <code>manpage</code>, <code>inline</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>safe</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SafeMode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SafeMode::SAFE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Trust level.  Pass a <code>\Webware\AsciidocPhp\SafeMode</code> enum case.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>attributes</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>array&lt;string, string|false&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>[]</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Initial document attributes.  <code>false</code> explicitly unsets an attribute;
+a string sets it.  Keys set here are <em>locked</em> — the document header
+cannot override them.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>header_footer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bool</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When <code>false</code>, output is an embedded fragment (no <code>&lt;html&gt;</code>/<code>&lt;head&gt;</code>/<code>&lt;body&gt;</code>).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>base_dir</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>string|null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Base directory for <code>include::</code> resolution.  Defaults to
+<code>dirname($path)</code> for <code>convertFile()</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>converter</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ConverterInterface</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Html5Converter</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Custom converter instance.  Implement
+<code>\Webware\AsciidocPhp\Converter\ConverterInterface</code> to supply your own.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sourcemap</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bool</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Attach source-location metadata to AST nodes (for tooling / IDE use).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_api_examples">2.4. API Examples</h3>
+<div class="listingblock">
+<div class="title">Minimal conversion</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-php hljs" data-lang="php">$html = Asciidoc::convert('= Hello World');</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Embedded fragment</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-php hljs" data-lang="php">$fragment = Asciidoc::convert($source, ['header_footer' =&gt; false]);</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Set attributes programmatically</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-php hljs" data-lang="php">$html = Asciidoc::convert($source, [
+    'attributes' =&gt; [
+        'toc'              =&gt; 'left',
+        'sectnums'         =&gt; '',
+        'icons'            =&gt; 'font',
+        'source-highlighter' =&gt; 'highlight.js',
+    ],
+]);</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Strip YAML front matter and read promoted attributes</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-php hljs" data-lang="php">use Webware\AsciidocPhp\Asciidoc;
+use Webware\AsciidocPhp\Document;
+use Webware\AsciidocPhp\Parser\Parser;
+use Webware\AsciidocPhp\Reader\Cursor;
+use Webware\AsciidocPhp\Reader\PreprocessorReader;
+
+// High-level: skip-front-matter via the facade
+$html = Asciidoc::convertFile('page.adoc', [
+    'attributes' =&gt; ['skip-front-matter' =&gt; ''],
+]);
+
+// The raw YAML block is available as the `front-matter` document attribute
+// after the parse if you work at the lower-level API.</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Use a strict safe mode</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-php hljs" data-lang="php">use Webware\AsciidocPhp\SafeMode;
+
+$html = Asciidoc::convertFile('untrusted.adoc', [
+    'safe' =&gt; SafeMode::SECURE,
+]);</code></pre>
+</div>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="yaml-front-matter">3. YAML Front Matter</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When the <code>skip-front-matter</code> attribute is set, <code>asciidoc-php</code> recognises
+a YAML front matter block at the very start of the document.</p>
+</div>
+<div class="sect2">
+<h3 id="_format">3.1. Format</h3>
+<div class="paragraph">
+<p>The block is delimited by <code>---</code> on its own line, must begin on the first
+line of the file, and must be closed by a second <code>---</code> line before any
+AsciiDoc content.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">---
+layout: default
+title: "My Page"
+author: Alice
+---
+= My Page
+Alice
+:toc: left
+
+Document body starts here.</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_behaviour">3.2. Behaviour</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Rule</th>
+<th class="tableblock halign-left valign-top">Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Activation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Front matter is only parsed when <code>skip-front-matter</code> is set; otherwise the <code>---</code> lines are treated as literal content.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Storage</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The raw YAML text (between the delimiters, delimiters excluded) is stored in the <code>front-matter</code> document attribute.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Attribute promotion</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Simple scalar <code>key: value</code> pairs are promoted as document attributes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quote stripping</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Values wrapped in <code>"…"</code> or <code>'…'</code> have their surrounding quotes stripped.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No override</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A promoted key never overwrites an attribute already set on the document (e.g. via <code>-a</code>).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unclosed block</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If no closing <code>---</code> is found, the lines are restored and no front matter is extracted.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_activating_via_cli">3.3. Activating via CLI</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">asciidoc-php -a skip-front-matter docs/page.adoc</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_activating_via_api">3.4. Activating via API</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-php hljs" data-lang="php">$html = Asciidoc::convertFile('page.adoc', [
+    'attributes' =&gt; ['skip-front-matter' =&gt; ''],
+]);</code></pre>
+</div>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_document_attributes_reference">4. Document Attributes Reference</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following built-in attributes are set automatically on every document.
+They can be read by the document source, overridden via <code>-a</code> / <code>attributes</code>,
+or queried from <code>Document::getAttribute()</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_read_only_set_by_the_converter">4.1. Read-only (set by the converter)</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Attribute</th>
+<th class="tableblock halign-left valign-top">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>asciidoc-version</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Library version string (e.g. <code>0.1.0</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>asciidoctor-version</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Same as <code>asciidoc-version</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>backend</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Active backend name (e.g. <code>html5</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>basebackend</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Base backend family (<code>html</code>, <code>docbook</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>doctype</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Active doctype (e.g. <code>article</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>encoding</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Always <code>UTF-8</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>filetype</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Output file type (e.g. <code>html</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>outfilesuffix</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Output file extension (e.g. <code>.html</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>docdate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Date the document was converted (<code>YYYY-MM-DD</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>doctime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time the document was converted (<code>HH:MM:SS</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>docdatetime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Date + time combined</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>localdate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Same as <code>docdate</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>localtime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Same as <code>doctime</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>localdatetime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Same as <code>docdatetime</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_configurable">4.2. Configurable</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Attribute</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>toc</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>(unset)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable TOC and set placement: <code>auto</code> (inline after title), <code>left</code>, <code>right</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>toc-title</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Table of Contents</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Heading text shown above the TOC</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>toc-placement</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>auto</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Alternative placement key; <code>left</code> and <code>right</code> work the same as <code>:toc: left/right</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sectnums</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>(unset)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Auto-number sections when set</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sectanchors</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>(unset)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prepend anchor links to section titles when set</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sectlinks</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>(unset)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Make section titles clickable anchor links when set</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>icons</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>(unset)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set to <code>font</code> to use Font Awesome icons in admonitions</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>source-highlighter</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>(unset)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set to <code>highlight.js</code> to enable client-side syntax highlighting</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>skip-front-matter</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>(unset)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Strip leading YAML front matter when set</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>imagesdir</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>(unset)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prepended to all <code>image::</code> / <code>image:</code> target paths</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>experimental</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>(unset)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable UI macros (<code>btn:[]</code>, <code>kbd:[]</code>, <code>menu:[]</code>) when set</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>caution-caption</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Caution</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Label for CAUTION admonition blocks</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>important-caption</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Important</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Label for IMPORTANT admonition blocks</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>note-caption</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Note</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Label for NOTE admonition blocks</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>tip-caption</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Tip</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Label for TIP admonition blocks</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>warning-caption</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Warning</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Label for WARNING admonition blocks</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>table-caption</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Table</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Caption prefix for auto-numbered tables</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>figure-caption</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Figure</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Caption prefix for auto-numbered figures</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>example-caption</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Example</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Caption prefix for auto-numbered examples</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</article>
+</main>
+</div>
+<footer class="site-footer">
+<a class="source-link" href="https://github.com/webinertia/asciidoc-php/blob/0.1.x/docs/v1/usage.adoc" rel="noopener">Edit this page</a>
+<p class="footer-project">Asciidoc Php</p>
+<p class="footer-version">v1</p>
+</footer>
+<script src="/assets/theme.42bf6e.js" defer></script>
+<script src="/assets/nav.1868c9.js" defer></script>
+<script src="/assets/search-core.db0f42.js" defer></script>
+<script src="/assets/search.2912b7.js" defer></script>
+</body>
+</html>

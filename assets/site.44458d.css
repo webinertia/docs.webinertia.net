@@ -1,0 +1,716 @@
+/*
+ * Override stylesheet for the aggregated documentation site.
+ *
+ * This is the second of the three stylesheets the page shell links, in this order:
+ *
+ *   1. asciidoctor.css, the converter's own base stylesheet, published as a hashed asset
+ *   2. this file, which themes the site around that base
+ *   3. accent.css, the single --color-accent rule for the project
+ *
+ * The base sheet owns document typography and structure. This file owns the colour tokens, the
+ * site chrome, and the overrides a fixed light palette needs under the dark theme.
+ *
+ * Hand authored, no build step, no import rules, and no absolute URL: every asset the shell
+ * references is hashed and served from the same origin.
+ *
+ * The token blocks below are the single source of truth for colour. ThemeResolver parses them, and
+ * the contrast test computes every text pair declared here, so a colour change is a test change.
+ */
+
+:root {
+    color-scheme: light;
+
+    --color-primary: #7e5ae0;
+    /* The palette secondary is #05a578, darkened here so normal text clears 4.5:1 on white. */
+    --color-secondary: #048460;
+    --color-accent: var(--color-primary);
+    --color-link: #6a49c9;
+    --color-link-hover: #543a9e;
+    --surface-page: #ffffff;
+    --surface-raised: #f6f5fa;
+    --text-body: #1e1b26;
+    --text-muted: #55506b;
+    --border-subtle: #d9d5e6;
+    --focus-ring: #6a49c9;
+
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 1rem;
+    --space-4: 1.5rem;
+    --space-5: 2.5rem;
+    --radius-small: 0.25rem;
+    --radius-medium: 0.5rem;
+    --measure: 74ch;
+
+    --font-body: system-ui, -apple-system, "Segoe UI", roboto, sans-serif;
+    --font-mono: ui-monospace, sfmono-regular, consolas, monospace;
+}
+
+[data-theme="dark"] {
+    color-scheme: dark;
+
+    --color-primary: #9d80ea;
+    --color-secondary: #05a578;
+    --color-link: #b29cec;
+    --color-link-hover: #cbbdf3;
+    --surface-page: #16131c;
+    --surface-raised: #1f1b28;
+    --text-body: #e8e5f0;
+    --text-muted: #a8a2ba;
+    --border-subtle: #332d42;
+    --focus-ring: #b29cec;
+}
+
+html {
+    background-color: var(--surface-page);
+}
+
+body {
+    margin: 0;
+    background-color: var(--surface-page);
+    color: var(--text-body);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+a {
+    color: var(--color-link);
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.15em;
+}
+
+a:hover,
+a:focus-visible {
+    color: var(--color-link-hover);
+}
+
+:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+/*
+ * Selected text. The browser default highlight is tuned for a light page, so on the dark surface the
+ * selected text was barely distinguishable from the band behind it. Both values come from the theme,
+ * so the highlight tracks the palette instead of guessing at the surface underneath it.
+ */
+::selection {
+    background-color: var(--color-primary);
+    color: var(--surface-page);
+}
+
+.skip-link {
+    position: absolute;
+    left: -100vw;
+    top: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--surface-raised);
+    color: var(--text-body);
+    border-radius: var(--radius-small);
+}
+
+.skip-link:focus {
+    left: var(--space-3);
+    z-index: 10;
+}
+
+.site-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-subtle);
+    background-color: var(--surface-raised);
+}
+
+.site-header p {
+    margin: 0;
+}
+
+/*
+ * The brand mark. It is centred rather than baseline aligned because an image has no text baseline,
+ * and it is a fixed square so a wider header row cannot stretch it. The mark carries the site name
+ * as its alternative text, so the word does not appear beside it.
+ */
+.site-logo {
+    flex: 0 0 auto;
+    align-self: center;
+    width: 34px;
+    height: 34px;
+}
+
+/*
+ * The mark's link. `line-height: 0` removes the inline baseline gap the anchor would otherwise add
+ * below the image, and the underline is dropped because it would draw under the mark.
+ */
+.site-brand {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-self: center;
+    line-height: 0;
+    text-decoration: none;
+}
+
+.site-name {
+    font-weight: 700;
+}
+
+.project-name {
+    color: var(--text-muted);
+}
+
+.version-label {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+}
+
+.theme-toggle {
+    margin-left: auto;
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-medium);
+    background-color: var(--surface-page);
+    color: var(--text-body);
+    font: inherit;
+    cursor: pointer;
+}
+
+/*
+ * Site chrome. The switchers are progressive enhancement: nav.js replaces the label with a button
+ * and hides the list. The open panel is absolute so it overlays the page instead of joining the
+ * header flex flow, which would grow the header and push the document down.
+ */
+
+.project-switcher,
+.version-selector,
+.site-search {
+    position: relative;
+}
+
+.has-toggle .nav-label {
+    display: none;
+}
+
+.nav-toggle,
+.search-input,
+.search-scope {
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-medium);
+    background-color: var(--surface-page);
+    color: var(--text-body);
+    font: inherit;
+}
+
+.nav-toggle {
+    cursor: pointer;
+}
+
+.nav-toggle:hover {
+    border-color: var(--color-link);
+    color: var(--color-link-hover);
+}
+
+.nav-toggle:focus-visible,
+.search-input:focus-visible,
+.search-scope:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+.project-switcher ul,
+.version-selector ul {
+    position: absolute;
+    top: calc(100% + var(--space-1));
+    left: 0;
+    z-index: 20;
+    min-width: 12rem;
+    margin: 0;
+    padding: var(--space-1) 0;
+    list-style: none;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-medium);
+    background-color: var(--surface-page);
+    box-shadow: 0 0.5rem 1.5rem rgba(30, 27, 38, 0.18);
+}
+
+.project-switcher ul[hidden],
+.version-selector ul[hidden] {
+    display: none;
+}
+
+.project-item,
+.version-item {
+    margin: 0;
+}
+
+.project-item a,
+.version-item a {
+    display: block;
+    padding: var(--space-1) var(--space-3);
+    color: var(--text-body);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.project-item a:hover,
+.project-item a:focus-visible,
+.version-item a:hover,
+.version-item a:focus-visible {
+    background-color: var(--surface-raised);
+    color: var(--color-link-hover);
+}
+
+.project-item a[aria-current="page"],
+.version-item a[aria-current="page"] {
+    color: var(--color-link);
+    font-weight: 700;
+}
+
+.version-flag {
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.site-search {
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.site-search[hidden] {
+    display: none;
+}
+
+.search-label,
+.search-scope-label {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.search-input {
+    flex: 1 1 16rem;
+    min-width: 0;
+}
+
+/* The Asciidoctor stylesheet is loaded globally and carries a bare
+ * `select { width: 100% }` from its form-control reset. Left alone, that
+ * stretches the scope picker across the whole header row and wraps it onto
+ * a line of its own. */
+.search-scope {
+    flex: 0 0 auto;
+    width: auto;
+}
+
+.search-results {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    z-index: 20;
+    max-height: 60vh;
+    overflow-y: auto;
+    margin: var(--space-1) 0 0;
+    padding: var(--space-1) 0;
+    list-style: none;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-medium);
+    background-color: var(--surface-page);
+    box-shadow: 0 0.5rem 1.5rem rgba(30, 27, 38, 0.18);
+}
+
+.search-results[hidden] {
+    display: none;
+}
+
+.search-result {
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+}
+
+.search-result a {
+    color: var(--color-link);
+    text-decoration: none;
+}
+
+.search-result-title {
+    display: block;
+    color: var(--text-body);
+    font-weight: 600;
+}
+
+.search-result-project,
+.search-result-version,
+.search-result-section {
+    display: inline-block;
+    margin-right: var(--space-2);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.search-status {
+    flex-basis: 100%;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.layout {
+    display: grid;
+    gap: var(--space-5);
+    grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
+    padding: var(--space-4);
+    max-width: 90rem;
+    margin: 0 auto;
+}
+
+.sidebar {
+    align-self: start;
+    position: sticky;
+    top: var(--space-3);
+    max-height: calc(100vh - var(--space-5));
+    overflow-y: auto;
+    font-size: 0.9375rem;
+}
+
+.toc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 2px solid var(--border-subtle);
+}
+
+.toc-list li {
+    margin: 0;
+}
+
+.toc-list a {
+    display: block;
+    padding: var(--space-1) var(--space-2);
+    color: var(--text-muted);
+    text-decoration: none;
+}
+
+.toc-list a:hover,
+.toc-list a:focus-visible {
+    color: var(--color-link-hover);
+}
+
+.toc-level-3 {
+    padding-left: var(--space-3);
+}
+
+main {
+    min-width: 0;
+}
+
+.doc {
+    max-width: var(--measure);
+}
+
+.doc h1,
+.doc h2,
+.doc h3,
+.doc h4,
+.doc h5,
+.doc h6 {
+    line-height: 1.25;
+    margin-top: var(--space-5);
+    margin-bottom: var(--space-2);
+    color: var(--text-body);
+}
+
+.doc h1 {
+    margin-top: 0;
+    font-size: 2rem;
+}
+
+.doc h2 {
+    font-size: 1.5rem;
+    padding-bottom: var(--space-1);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.doc h3 {
+    font-size: 1.25rem;
+}
+
+/*
+ * The preamble's opening paragraph. The base sheet paints it 85 percent black so the lead paragraph
+ * reads heavier, and that selector is an id plus two classes, so `.doc p` lost and the paragraph
+ * stayed near black on the dark page at roughly 1.1 to 1. This reproduces the id path and adds the
+ * `.doc` ancestor, which outranks the base rule outright rather than relying on load order.
+ */
+.doc #preamble > .sectionbody > .paragraph:first-of-type p,
+.doc .paragraph.lead > p {
+    color: var(--text-body);
+}
+
+.doc p,
+.doc ul,
+.doc ol,
+.doc dl,
+.doc table,
+.doc pre,
+.doc blockquote {
+    margin-top: 0;
+    margin-bottom: var(--space-3);
+}
+
+.doc code,
+.doc pre {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+}
+
+/*
+ * Inline code. The base sheet paints the chip with `:not(pre):not([class^=L]) > code`, which
+ * carries one class and two elements, so a plain `.doc code` lost the background and the chip kept
+ * a near white fill under the dark theme while the text had already moved to the theme. This
+ * selector matches that specificity exactly and this sheet loads later, so it wins the tie.
+ */
+.doc :not(pre) > code {
+    padding: 0.1em 0.3em;
+    border-radius: var(--radius-small);
+    background-color: var(--surface-raised);
+    color: var(--text-body);
+}
+
+.doc pre {
+    padding: var(--space-3);
+    overflow-x: auto;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-medium);
+    background-color: var(--surface-raised);
+    color: var(--text-body);
+}
+
+.doc pre code {
+    padding: 0;
+    background-color: transparent;
+}
+
+/*
+ * Code blocks. The base rule that paints listing blocks carries three classes, so `.doc pre` never
+ * reached it and every listing kept the near white fill under the dark theme. Same tie-break as the
+ * chip above: equal specificity, later sheet.
+ *
+ * Literal output blocks are left alone. The base sheet inverts them, and a dark fill reads as
+ * program output in either palette, so the inversion is deliberate rather than a leak.
+ */
+.doc .literalblock > pre,
+.doc .listingblock > .content > pre {
+    background-color: var(--surface-raised);
+    color: var(--text-body);
+}
+
+/*
+ * A code span inside a link. The base sheet restates the colour on hover at a higher specificity
+ * than the chip rule, which turned the span near black on a raised surface.
+ */
+.doc a > code:hover {
+    color: var(--text-body);
+}
+
+.doc blockquote {
+    padding-left: var(--space-3);
+    border-left: 4px solid var(--color-secondary);
+    color: var(--text-muted);
+}
+
+.doc table {
+    width: 100%;
+    border-collapse: collapse;
+    border-color: var(--border-subtle);
+    background-color: transparent;
+}
+
+.doc th,
+.doc td {
+    padding: var(--space-2);
+    border: 1px solid var(--border-subtle);
+    text-align: left;
+    color: var(--text-body);
+    /* Only `anywhere` lowers a cell's min-content width; `break-word` lets a
+       long unbreakable token keep dictating the table's width. */
+    overflow-wrap: anywhere;
+}
+
+.doc th p {
+    color: inherit;
+}
+
+.doc th {
+    background-color: var(--surface-raised);
+}
+
+/*
+ * The base stylesheet is a fixed light palette with no custom properties, so the block types it
+ * paints need a colour override to survive the dark theme. Only colour, background, and border
+ * colour are restated here; typography and spacing stay with the base rules.
+ */
+.doc tr.even,
+.doc tr.alt {
+    background-color: transparent;
+}
+
+/*
+ * The table head and foot rows carry their own fill in the base sheet. The cells are already
+ * themed, so this only stops the row fill showing at the cell borders.
+ */
+.doc thead,
+.doc tfoot {
+    background-color: transparent;
+}
+
+/*
+ * Block titles. The base sheet sets one colour for every block title through a long selector list,
+ * and only the sidebar title was restated, so a listing, example, or admonition title stayed dark
+ * red on a dark page. `:is()` keeps the list readable while still outranking the single class each
+ * base selector uses.
+ */
+.doc
+    :is(
+        .listingblock,
+        .literalblock,
+        .exampleblock,
+        .openblock,
+        .paragraph,
+        .imageblock,
+        .stemblock,
+        .verseblock,
+        .videoblock,
+        .audioblock,
+        .dlist,
+        .olist,
+        .ulist,
+        .qlist,
+        .hdlist
+    )
+    > .title,
+.doc .admonitionblock td.content > .title,
+.doc table.tableblock > .title {
+    color: var(--text-muted);
+}
+
+.doc .exampleblock > .content,
+.doc .sidebarblock {
+    border-color: var(--border-subtle);
+    background-color: var(--surface-raised);
+}
+
+.doc .admonitionblock > table td.content {
+    border-left-color: var(--border-subtle);
+    color: var(--text-body);
+}
+
+.doc .quoteblock p {
+    color: var(--text-muted);
+}
+
+.doc .quoteblock blockquote::before,
+.doc .sidebarblock > .content > .title {
+    color: var(--color-secondary);
+}
+
+.doc hr {
+    border-color: var(--border-subtle);
+}
+
+.doc .admonitionblock {
+    margin-bottom: var(--space-3);
+    padding: var(--space-3);
+    border-left: 4px solid var(--color-primary);
+    border-radius: var(--radius-medium);
+    background-color: var(--surface-raised);
+}
+
+/*
+ * Admonition glyphs come from the base stylesheet, which defines both the icon sizing and the
+ * five `fa icon-*` codepoints. Nothing is restated here.
+ */
+
+.site-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: var(--space-4);
+    border-top: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.site-footer p {
+    margin: 0;
+}
+
+.source-link {
+    color: var(--color-link);
+}
+
+@media (max-width: 60rem) {
+    .layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sidebar {
+        position: static;
+        max-height: none;
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: var(--space-3);
+    }
+}
+
+/*
+ * Print stylesheet.
+ *
+ * This file is appended to the site stylesheet when the build writes assets, so the shell keeps
+ * exactly two stylesheet links and the site stylesheet needs no import rule.
+ */
+
+@media print {
+    .site-header,
+    .sidebar,
+    .site-footer,
+    .skip-link,
+    .theme-toggle {
+        display: none;
+    }
+
+    .layout {
+        display: block;
+        padding: 0;
+    }
+
+    body {
+        background-color: #ffffff;
+        color: #000000;
+        font-size: 11pt;
+    }
+
+    a {
+        color: #000000;
+        text-decoration: underline;
+    }
+
+    .doc {
+        max-width: none;
+    }
+
+    .doc h2,
+    .doc h3 {
+        break-after: avoid;
+    }
+
+    .doc pre,
+    .doc table,
+    .doc blockquote {
+        break-inside: avoid;
+    }
+}

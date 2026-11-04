@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-mode="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting Started | messagebus-event | Webware Documentation</title>
+<link rel="canonical" href="https://docs.webinertia.net/messagebus-event/v2/getting-started.html">
+<link rel="icon" href="/assets/logo.a56b33.svg">
+<link rel="stylesheet" href="/assets/asciidoctor.426b47.css">
+<link rel="stylesheet" href="/assets/site.44458d.css">
+<link rel="stylesheet" href="/assets/accent.4e16a5.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script>
+(function () {
+  var stored = null;
+  try {
+    stored = window.localStorage.getItem('asciidoc-php-theme');
+  } catch (error) {
+    stored = null;
+  }
+  var mode = document.documentElement.getAttribute('data-theme-mode');
+  var theme;
+  if (stored === 'light' || stored === 'dark') {
+    theme = stored;
+  } else if (mode === 'light' || mode === 'dark') {
+    theme = mode;
+  } else {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<a class="site-brand" href="/"><img class="site-logo" src="/assets/logo.a56b33.svg" alt="Webware Documentation" width="34" height="34" decoding="async"></a>
+<p class="project-name">messagebus-event</p>
+<p class="version-label">v2</p>
+<nav class="project-switcher" aria-label="Projects" data-project-switcher>
+<p class="nav-label">Projects</p>
+<ul>
+<li class="project-item"><a href="/asciidoc-php/">asciidoc-php</a></li>
+<li class="project-item"><a href="/message-bus/">message-bus</a></li>
+<li class="project-item project-current"><a href="/messagebus-event/" aria-current="page">messagebus-event</a></li>
+</ul>
+</nav>
+<nav class="version-selector" aria-label="Versions" data-version-selector>
+<p class="nav-label">Versions</p>
+<ul>
+<li class="version-item version-latest"><a href="/messagebus-event/v2/getting-started.html" aria-current="page">v2 <span class="version-flag">(latest)</span></a></li>
+<li class="version-item"><a href="/messagebus-event/v1/getting-started.html">v1</a></li>
+</ul>
+</nav>
+<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">Toggle dark mode</button>
+<div class="site-search" data-search data-site-index="/search-index.json" data-project-index="/messagebus-event/search-index.json" data-project-slug="messagebus-event" data-version-label="v2" hidden>
+<label class="search-label" for="site-search-input">Search</label>
+<input class="search-input" id="site-search-input" type="search" autocomplete="off" spellcheck="false" data-search-input>
+<label class="search-scope-label" for="site-search-scope">Scope</label>
+<select class="search-scope" id="site-search-scope" data-search-scope>
+<option value="version">This version</option>
+<option value="project">All versions</option>
+<option value="site">All projects</option>
+</select>
+<ul class="search-results" data-search-results hidden></ul>
+<p class="search-status" data-search-status aria-live="polite"></p>
+</div>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="On this page">
+<ol class="toc-list">
+<li class="toc-level-2"><a href="#_requirements">Requirements</a></li>
+<li class="toc-level-2"><a href="#_installation">Installation</a></li>
+<li class="toc-level-2"><a href="#_wiring">Wiring</a></li>
+<li class="toc-level-2"><a href="#_registering_listeners">Registering Listeners</a></li>
+</ol>
+</nav>
+<main id="main">
+<article class="doc">
+<div class="sect1">
+<h2 id="_requirements">Requirements</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>PHP <code>~8.4.1 || ~8.5.0</code></p>
+</li>
+<li>
+<p><a href="https://github.com/webinertia/message-bus" rel="noopener"><code>webware/message-bus</code></a> v2 (<code>^2.0</code>; during the beta the dev
+branch is tracked as <code>2.0.x-dev</code>). Installed automatically as a direct dependency of this package.</p>
+</li>
+<li>
+<p><a href="https://github.com/laminas/laminas-servicemanager" rel="noopener"><code>laminas/laminas-servicemanager</code></a> <code>^4.0.0</code></p>
+</li>
+<li>
+<p><a href="https://github.com/phly/phly-event-dispatcher" rel="noopener"><code>phly/phly-event-dispatcher</code></a> <code>^1.5.0</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_installation">Installation</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash hljs" data-lang="bash">composer require webware/messagebus-event webware/message-bus</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_wiring">Wiring</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This package ships a <code>Webware\MessageBus\Event\ConfigProvider</code>. Auto-registration is handled by the
+<a href="https://github.com/laminas/laminas-component-installer" rel="noopener"><code>laminas/laminas-component-installer</code></a> Composer
+plugin, which reads the <code>extra.laminas.config-provider</code> entry in <code>composer.json</code>; plain
+<code>laminas/laminas-config-aggregator</code> only merges config arrays and does not register providers itself.</p>
+</div>
+<div class="paragraph">
+<p>To wire it manually, merge it with <code>webware/message-bus</code>'s own <code>ConfigProvider</code> when building your
+application config, then build a <code>Laminas\ServiceManager\ServiceManager</code> from the merged config:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">use Laminas\ServiceManager\ServiceManager;
+
+$config = [];
+foreach (
+    [
+        Webware\MessageBus\ConfigProvider::class,
+        Webware\MessageBus\Event\ConfigProvider::class,
+        // ...your own config providers
+    ] as $provider
+) {
+    $config = array_merge_recursive($config, (new $provider())());
+}
+
+$container = new ServiceManager($config['dependencies']);
+$container-&gt;setService('config', $config);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once wired, resolving <code>Webware\MessageBus\MessageBusInterface</code> from the container gives you a bus whose
+default middleware pipeline dispatches <code>CommandPreHandleEvent</code> before a command handler runs, and
+<code>CommandPostHandleEvent</code> after it completes. Query events are <strong>not</strong> wired by default - see
+<a href="/messagebus-event/v2/usage-examples.html#opting-in-to-query-events">Usage Examples</a> to enable them.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_registering_listeners">Registering Listeners</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Listeners are configured under the <code>listeners</code> and <code>listener_providers</code> keys, read by
+<code>Webware\MessageBus\Event\Container\ListenerProviderAggregateFactory</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">return [
+    'listeners' =&gt; [
+        Webware\MessageBus\Event\Command\CommandPostHandleEvent::class =&gt; [
+            // a service id resolved from the container, or a plain callable/class-string
+            MyListener::class,
+            // a shape entry supporting an explicit priority (higher runs first)
+            ['listener' =&gt; MyOtherListener::class, 'priority' =&gt; 10],
+        ],
+    ],
+    'listener_providers' =&gt; [
+        // service ids of PSR-14 ListenerProviderInterface implementations
+        MyCustomListenerProvider::class,
+    ],
+];</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See the <a href="/messagebus-event/v2/api-reference.html#configprovider">API Reference</a> for the full config shape.</p>
+</div>
+</div>
+</div>
+</article>
+</main>
+</div>
+<footer class="site-footer">
+<a class="source-link" href="https://github.com/webinertia/messagebus-event/blob/2.0.x/docs/v2/getting-started.adoc" rel="noopener">Edit this page</a>
+<p class="footer-project">messagebus-event</p>
+<p class="footer-version">v2</p>
+</footer>
+<script src="/assets/theme.42bf6e.js" defer></script>
+<script src="/assets/nav.1868c9.js" defer></script>
+<script src="/assets/search-core.db0f42.js" defer></script>
+<script src="/assets/search.2912b7.js" defer></script>
+</body>
+</html>

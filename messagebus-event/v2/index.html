@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-mode="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Webware MessageBus Event | messagebus-event | Webware Documentation</title>
+<link rel="canonical" href="https://docs.webinertia.net/messagebus-event/v2/index.html">
+<link rel="icon" href="/assets/logo.a56b33.svg">
+<link rel="stylesheet" href="/assets/asciidoctor.426b47.css">
+<link rel="stylesheet" href="/assets/site.44458d.css">
+<link rel="stylesheet" href="/assets/accent.4e16a5.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script>
+(function () {
+  var stored = null;
+  try {
+    stored = window.localStorage.getItem('asciidoc-php-theme');
+  } catch (error) {
+    stored = null;
+  }
+  var mode = document.documentElement.getAttribute('data-theme-mode');
+  var theme;
+  if (stored === 'light' || stored === 'dark') {
+    theme = stored;
+  } else if (mode === 'light' || mode === 'dark') {
+    theme = mode;
+  } else {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<a class="site-brand" href="/"><img class="site-logo" src="/assets/logo.a56b33.svg" alt="Webware Documentation" width="34" height="34" decoding="async"></a>
+<p class="project-name">messagebus-event</p>
+<p class="version-label">v2</p>
+<nav class="project-switcher" aria-label="Projects" data-project-switcher>
+<p class="nav-label">Projects</p>
+<ul>
+<li class="project-item"><a href="/asciidoc-php/">asciidoc-php</a></li>
+<li class="project-item"><a href="/message-bus/">message-bus</a></li>
+<li class="project-item project-current"><a href="/messagebus-event/" aria-current="page">messagebus-event</a></li>
+</ul>
+</nav>
+<nav class="version-selector" aria-label="Versions" data-version-selector>
+<p class="nav-label">Versions</p>
+<ul>
+<li class="version-item version-latest"><a href="/messagebus-event/v2/index.html" aria-current="page">v2 <span class="version-flag">(latest)</span></a></li>
+<li class="version-item"><a href="/messagebus-event/v1/index.html">v1</a></li>
+</ul>
+</nav>
+<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">Toggle dark mode</button>
+<div class="site-search" data-search data-site-index="/search-index.json" data-project-index="/messagebus-event/search-index.json" data-project-slug="messagebus-event" data-version-label="v2" hidden>
+<label class="search-label" for="site-search-input">Search</label>
+<input class="search-input" id="site-search-input" type="search" autocomplete="off" spellcheck="false" data-search-input>
+<label class="search-scope-label" for="site-search-scope">Scope</label>
+<select class="search-scope" id="site-search-scope" data-search-scope>
+<option value="version">This version</option>
+<option value="project">All versions</option>
+<option value="site">All projects</option>
+</select>
+<ul class="search-results" data-search-results hidden></ul>
+<p class="search-status" data-search-status aria-live="polite"></p>
+</div>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="On this page">
+<ol class="toc-list">
+<li class="toc-level-2"><a href="#_documentation">Documentation</a></li>
+</ol>
+</nav>
+<main id="main">
+<article class="doc">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Event integration for <a href="https://github.com/webinertia/message-bus" rel="noopener"><code>webware/message-bus</code></a>, built on top of
+<a href="https://github.com/phly/phly-event-dispatcher" rel="noopener"><code>phly/phly-event-dispatcher</code></a> (PSR-14). It adds pre/post
+"handle" events for both Command and Query messages, dispatched via middleware in the bus pipeline.</p>
+</div>
+<div class="paragraph">
+<p>This documentation targets the v2 release line, aligned with <code>webware/message-bus</code> v2.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_documentation">Documentation</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="/messagebus-event/v2/getting-started.html">Getting Started</a> - installation and wiring.</p>
+</li>
+<li>
+<p><a href="/messagebus-event/v2/usage-examples.html">Usage Examples</a> - listening for events, opting in to query events, custom events.</p>
+</li>
+<li>
+<p><a href="/messagebus-event/v2/api-reference.html">API Reference</a> - every public class, interface, and trait.</p>
+</li>
+<li>
+<p><a href="/messagebus-event/v2/contributing.html">Contributing</a> - local setup, tests, and static analysis.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</article>
+</main>
+</div>
+<footer class="site-footer">
+<a class="source-link" href="https://github.com/webinertia/messagebus-event/blob/2.0.x/docs/v2/index.adoc" rel="noopener">Edit this page</a>
+<p class="footer-project">messagebus-event</p>
+<p class="footer-version">v2</p>
+</footer>
+<script src="/assets/theme.42bf6e.js" defer></script>
+<script src="/assets/nav.1868c9.js" defer></script>
+<script src="/assets/search-core.db0f42.js" defer></script>
+<script src="/assets/search.2912b7.js" defer></script>
+</body>
+</html>

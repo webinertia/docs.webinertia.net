@@ -1,0 +1,375 @@
+{
+    "schemaVersion": 1,
+    "project": {
+        "slug": "messagebus-event",
+        "title": "messagebus-event"
+    },
+    "versions": [
+        {
+            "label": "v2",
+            "latest": true,
+            "url": "/messagebus-event/v2/",
+            "pages": [
+                {
+                    "url": "/messagebus-event/v2/api-reference.html",
+                    "title": "API Reference",
+                    "headings": [
+                        {
+                            "id": "_core_event_types",
+                            "title": "Core Event Types",
+                            "level": 2
+                        },
+                        {
+                            "id": "_eventinterface",
+                            "title": "`EventInterface`",
+                            "level": 3
+                        },
+                        {
+                            "id": "_event",
+                            "title": "`Event`",
+                            "level": 3
+                        },
+                        {
+                            "id": "_eventpropagationinterface_eventpropagationtrait",
+                            "title": "`EventPropagationInterface` / `EventPropagationTrait`",
+                            "level": 3
+                        },
+                        {
+                            "id": "_eventawareinterface_eventawaretrait",
+                            "title": "`EventAwareInterface` / `EventAwareTrait`",
+                            "level": 3
+                        },
+                        {
+                            "id": "_listenerinterface",
+                            "title": "`ListenerInterface`",
+                            "level": 3
+                        },
+                        {
+                            "id": "_command_events",
+                            "title": "Command Events",
+                            "level": 2
+                        },
+                        {
+                            "id": "_query_events",
+                            "title": "Query Events",
+                            "level": 2
+                        },
+                        {
+                            "id": "_middleware",
+                            "title": "Middleware",
+                            "level": 2
+                        },
+                        {
+                            "id": "_container_factories",
+                            "title": "Container Factories",
+                            "level": 2
+                        },
+                        {
+                            "id": "configprovider",
+                            "title": "`ConfigProvider`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_listeners_config_shape",
+                            "title": "`listeners` config shape",
+                            "level": 3
+                        },
+                        {
+                            "id": "_listener_providers_config_shape",
+                            "title": "`listener_providers` config shape",
+                            "level": 3
+                        }
+                    ],
+                    "text": "All classes live under the Webware\\MessageBus\\Event namespace (PSR-4 root: src/ ). Core Event Types EventInterface interface EventInterface { public function getName(): string; public function getParam(string $name, mixed $default = null): mixed; /** @return array&lt;string, mixed&gt; */ public function getParams(): array; public function getTarget(): ?object; public function setName(string $name): void; public function setParam(string $name, mixed $value): void; /** @param array&lt;string, mixed&gt; $params */ public function setParams(array $params): void; public function setTarget(object $target): void; } Event Default EventInterface implementation. Also implements EventPropagationInterface via EventPropagationTrait . class Event implements EventInterface, EventPropagationInterface { /** @param array&lt;string, mixed&gt; $params */ public function __construct( ?string $name = null, ?object $target = null, array $params = [], ) {} } If $name is omitted, getName() falls back to static::class - useful for the Command\\&#42; / Query\\&#42; subclasses below, which don't set a name explicitly. EventPropagationInterface / EventPropagationTrait interface EventPropagationInterface { public function isPropagationStopped(): bool; public function stopPropagation(): void; } trait EventPropagationTrait { protected bool $propagationStopped = false; public function isPropagationStopped(): bool; public function stopPropagation(bool $flag = true): void; } The trait's stopPropagation() accepts an optional bool $flag = true , letting callers re-enable propagation ( stopPropagation(false) ) even though the interface only requires a no-argument method. EventAwareInterface / EventAwareTrait Lets a message or result object carry a domain event that the post-handle middleware can dispatch alongside the built-in *PostHandleEvent . interface EventAwareInterface { public function getEvent(): ?EventInterface; public function setEvent(EventInterface $event): void; } trait EventAwareTrait { publ"
+                },
+                {
+                    "url": "/messagebus-event/v2/contributing.html",
+                    "title": "Contributing",
+                    "headings": [
+                        {
+                            "id": "_setup",
+                            "title": "Setup",
+                            "level": 2
+                        },
+                        {
+                            "id": "_running_tests",
+                            "title": "Running Tests",
+                            "level": 2
+                        },
+                        {
+                            "id": "_static_analysis",
+                            "title": "Static Analysis",
+                            "level": 2
+                        },
+                        {
+                            "id": "_pull_requests",
+                            "title": "Pull Requests",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Setup git clone https://github.com/webinertia/messagebus-event.git cd messagebus-event composer install Running Tests composer test # unit tests only (test/unit) composer test-integration # integration tests only (test/integration) composer test-all # both suites composer test-coverage # unit tests with a Clover coverage report Tests are organized by autoload-dev namespace: Namespace Directory Purpose WebwareTest\\MessageBus\\Event\\ test/unit/ Unit tests, one class per source file. WebwareIntegrationTest\\MessageBus\\Event\\ test/integration/ Real Laminas\\ServiceManager\\ServiceManager wiring both this package's and webware/message-bus 's `ConfigProvider`s. WebwareTestAsset\\MessageBus\\Event\\ test/asset/ Shared fixtures/test doubles (e.g. TestCommand , RecordingListener ). phpunit.xml.dist requires coverage metadata on every test ( [CoversClass] or [CoversNothing] ) and fails the run on any notice, deprecation, or warning. Static Analysis This project uses Mago for formatting, linting, and static analysis, configured in mago.toml against both src and test : mago format # auto-format mago lint # style/best-practice rules (mago lint --fix auto-fixes some) mago analyze # static type analysis All three must report no issues before submitting a pull request. If a lint rule is a genuine false positive, suppress the specific line with a // @mago-expect lint:&lt;rule-name&gt; comment directly above it rather than disabling the rule globally. Pull Requests Keep changes focused; unrelated formatting-only diffs make review harder. Add or update tests for any behavior change. Update the relevant page(s) under docs/v2/ when public API or configuration shape changes."
+                },
+                {
+                    "url": "/messagebus-event/v2/getting-started.html",
+                    "title": "Getting Started",
+                    "headings": [
+                        {
+                            "id": "_requirements",
+                            "title": "Requirements",
+                            "level": 2
+                        },
+                        {
+                            "id": "_installation",
+                            "title": "Installation",
+                            "level": 2
+                        },
+                        {
+                            "id": "_wiring",
+                            "title": "Wiring",
+                            "level": 2
+                        },
+                        {
+                            "id": "_registering_listeners",
+                            "title": "Registering Listeners",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Requirements PHP ~8.4.1 || ~8.5.0 webware/message-bus v2 ( ^2.0 ; during the beta the dev branch is tracked as 2.0.x-dev ). Installed automatically as a direct dependency of this package. laminas/laminas-servicemanager ^4.0.0 phly/phly-event-dispatcher ^1.5.0 Installation composer require webware/messagebus-event webware/message-bus Wiring This package ships a Webware\\MessageBus\\Event\\ConfigProvider . Auto-registration is handled by the laminas/laminas-component-installer Composer plugin, which reads the extra.laminas.config-provider entry in composer.json ; plain laminas/laminas-config-aggregator only merges config arrays and does not register providers itself. To wire it manually, merge it with webware/message-bus 's own ConfigProvider when building your application config, then build a Laminas\\ServiceManager\\ServiceManager from the merged config: use Laminas\\ServiceManager\\ServiceManager; $config = []; foreach ( [ Webware\\MessageBus\\ConfigProvider::class, Webware\\MessageBus\\Event\\ConfigProvider::class, // ...your own config providers ] as $provider ) { $config = array_merge_recursive($config, (new $provider())()); } $container = new ServiceManager($config['dependencies']); $container-&gt;setService('config', $config); Once wired, resolving Webware\\MessageBus\\MessageBusInterface from the container gives you a bus whose default middleware pipeline dispatches CommandPreHandleEvent before a command handler runs, and CommandPostHandleEvent after it completes. Query events are not wired by default - see Usage Examples to enable them. Registering Listeners Listeners are configured under the listeners and listener_providers keys, read by Webware\\MessageBus\\Event\\Container\\ListenerProviderAggregateFactory : return [ 'listeners' =&gt; [ Webware\\MessageBus\\Event\\Command\\CommandPostHandleEvent::class =&gt; [ // a service id resolved from the container, or a plain callable/class-string MyListener::class, // a shape entry supporting an explicit priority (higher runs first) ['l"
+                },
+                {
+                    "url": "/messagebus-event/v2/index.html",
+                    "title": "Webware MessageBus Event",
+                    "headings": [
+                        {
+                            "id": "_documentation",
+                            "title": "Documentation",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Event integration for webware/message-bus , built on top of phly/phly-event-dispatcher (PSR-14). It adds pre/post \"handle\" events for both Command and Query messages, dispatched via middleware in the bus pipeline. This documentation targets the v2 release line, aligned with webware/message-bus v2. Documentation Getting Started - installation and wiring. Usage Examples - listening for events, opting in to query events, custom events. API Reference - every public class, interface, and trait. Contributing - local setup, tests, and static analysis."
+                },
+                {
+                    "url": "/messagebus-event/v2/usage-examples.html",
+                    "title": "Usage Examples",
+                    "headings": [
+                        {
+                            "id": "_listening_for_command_events",
+                            "title": "Listening for Command events",
+                            "level": 2
+                        },
+                        {
+                            "id": "_ordering_listeners_by_priority",
+                            "title": "Ordering listeners by priority",
+                            "level": 2
+                        },
+                        {
+                            "id": "opting-in-to-query-events",
+                            "title": "Opting in to Query events",
+                            "level": 2
+                        },
+                        {
+                            "id": "dispatching-a-custom-event-alongside-the-result",
+                            "title": "Dispatching a custom event alongside the result",
+                            "level": 2
+                        },
+                        {
+                            "id": "_stopping_propagation",
+                            "title": "Stopping propagation",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Listening for Command events The default pipeline (see ConfigProvider::getPipeline() ) dispatches: Command\\CommandPreHandleEvent - before the command's handler runs. Command\\CommandPostHandleEvent - after the handler returns a CommandResultInterface . Register a listener under the listeners config key, keyed by the event class: use Webware\\MessageBus\\Event\\Command\\CommandPostHandleEvent; use Webware\\MessageBus\\Event\\EventInterface; use Webware\\MessageBus\\Event\\ListenerInterface; final class LogCommandCompletion implements ListenerInterface { public function __invoke(EventInterface $event): void { if (! $event instanceof CommandPostHandleEvent) { return; } printf( \"Command %s completed with status: %s\\n\", $event-&gt;getCommand()::class, $event-&gt;getResult()-&gt;getStatus()-&gt;name, ); } } return [ 'listeners' =&gt; [ CommandPostHandleEvent::class =&gt; [ LogCommandCompletion::class, ], ], ]; ListenerProviderAggregateFactory resolves LogCommandCompletion from the container if it's registered there (e.g. as an invokable or via a factory); otherwise it's treated as a plain callable/class-string. Ordering listeners by priority Use the shape form ( ['listener' =&gt; ..., 'priority' =&gt; ...] ) when multiple listeners are attached to the same event and must run in a specific order. Higher priority values run first: return [ 'listeners' =&gt; [ CommandPostHandleEvent::class =&gt; [ ['listener' =&gt; AuditListener::class, 'priority' =&gt; 10], ['listener' =&gt; LogCommandCompletion::class, 'priority' =&gt; 0], ], ], ]; Opting in to Query events Middleware\\QueryPreHandleMiddleware and Middleware\\QueryPostHandleMiddleware are registered in the container by this package, but are not added to the default middleware_pipeline - only Command events are wired out of the box. Add them yourself, choosing priorities relative to your other middleware (e.g. webware/message-bus 's own MessageHandlerMiddleware , wired at priority 1 ): use Webware\\MessageBus\\ConfigProvider as BusProvide"
+                }
+            ]
+        },
+        {
+            "label": "v1",
+            "latest": false,
+            "url": "/messagebus-event/v1/",
+            "pages": [
+                {
+                    "url": "/messagebus-event/v1/api-reference.html",
+                    "title": "API Reference",
+                    "headings": [
+                        {
+                            "id": "_core_event_types",
+                            "title": "Core Event Types",
+                            "level": 2
+                        },
+                        {
+                            "id": "_eventinterface",
+                            "title": "`EventInterface`",
+                            "level": 3
+                        },
+                        {
+                            "id": "_event",
+                            "title": "`Event`",
+                            "level": 3
+                        },
+                        {
+                            "id": "_eventpropagationinterface_eventpropagationtrait",
+                            "title": "`EventPropagationInterface` / `EventPropagationTrait`",
+                            "level": 3
+                        },
+                        {
+                            "id": "_eventawareinterface_eventawaretrait",
+                            "title": "`EventAwareInterface` / `EventAwareTrait`",
+                            "level": 3
+                        },
+                        {
+                            "id": "_listenerinterface",
+                            "title": "`ListenerInterface`",
+                            "level": 3
+                        },
+                        {
+                            "id": "_command_events",
+                            "title": "Command Events",
+                            "level": 2
+                        },
+                        {
+                            "id": "_query_events",
+                            "title": "Query Events",
+                            "level": 2
+                        },
+                        {
+                            "id": "_middleware",
+                            "title": "Middleware",
+                            "level": 2
+                        },
+                        {
+                            "id": "_container_factories",
+                            "title": "Container Factories",
+                            "level": 2
+                        },
+                        {
+                            "id": "configprovider",
+                            "title": "`ConfigProvider`",
+                            "level": 2
+                        },
+                        {
+                            "id": "_listeners_config_shape",
+                            "title": "`listeners` config shape",
+                            "level": 3
+                        },
+                        {
+                            "id": "_listener_providers_config_shape",
+                            "title": "`listener_providers` config shape",
+                            "level": 3
+                        }
+                    ],
+                    "text": "All classes live under the Webware\\MessageBus\\Event namespace (PSR-4 root: src/ ). Core Event Types EventInterface interface EventInterface { public function getName(): string; public function getParam(string $name, mixed $default = null): mixed; /** @return array&lt;string, mixed&gt; */ public function getParams(): array; public function getTarget(): ?object; public function setName(string $name): void; public function setParam(string $name, mixed $value): void; /** @param array&lt;string, mixed&gt; $params */ public function setParams(array $params): void; public function setTarget(object $target): void; } Event Default EventInterface implementation. Also implements EventPropagationInterface via EventPropagationTrait . class Event implements EventInterface, EventPropagationInterface { /** @param array&lt;string, mixed&gt; $params */ public function __construct( ?string $name = null, ?object $target = null, array $params = [], ) {} } If $name is omitted, getName() falls back to static::class - useful for the Command\\&#42; / Query\\&#42; subclasses below, which don't set a name explicitly. EventPropagationInterface / EventPropagationTrait interface EventPropagationInterface { public function isPropagationStopped(): bool; public function stopPropagation(): void; } trait EventPropagationTrait { protected bool $propagationStopped = false; public function isPropagationStopped(): bool; public function stopPropagation(bool $flag = true): void; } The trait's stopPropagation() accepts an optional bool $flag = true , letting callers re-enable propagation ( stopPropagation(false) ) even though the interface only requires a no-argument method. EventAwareInterface / EventAwareTrait Lets a value (typically a CommandResultInterface / QueryResultInterface ) carry a domain event that the post-handle middleware should dispatch alongside the built-in *PostHandleEvent . interface EventAwareInterface { public function getEvent(): ?EventInterface; public function setEvent(EventInterface "
+                },
+                {
+                    "url": "/messagebus-event/v1/contributing.html",
+                    "title": "Contributing",
+                    "headings": [
+                        {
+                            "id": "_setup",
+                            "title": "Setup",
+                            "level": 2
+                        },
+                        {
+                            "id": "_running_tests",
+                            "title": "Running Tests",
+                            "level": 2
+                        },
+                        {
+                            "id": "_static_analysis",
+                            "title": "Static Analysis",
+                            "level": 2
+                        },
+                        {
+                            "id": "_pull_requests",
+                            "title": "Pull Requests",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Setup git clone https://github.com/webinertia/messagebus-event.git cd messagebus-event composer install Running Tests composer test # unit tests only (test/unit) composer test-integration # integration tests only (test/integration) composer test-all # both suites composer test-coverage # unit tests with a Clover coverage report Tests are organized by autoload-dev namespace: Namespace Directory Purpose WebwareTest\\MessageBus\\Event\\ test/unit/ Unit tests, one class per source file. WebwareIntegrationTest\\MessageBus\\Event\\ test/integration/ Real Laminas\\ServiceManager\\ServiceManager wiring both this package's and webware/message-bus 's `ConfigProvider`s. WebwareTestAsset\\MessageBus\\Event\\ test/asset/ Shared fixtures/test doubles (e.g. TestCommand , RecordingListener ). phpunit.xml.dist requires coverage metadata on every test ( [CoversClass] or [CoversNothing] ) and fails the run on any notice, deprecation, or warning. Static Analysis This project uses Mago for formatting, linting, and static analysis, configured in mago.toml against both src and test : mago format # auto-format mago lint # style/best-practice rules (mago lint --fix auto-fixes some) mago analyze # static type analysis All three must report no issues before submitting a pull request. If a lint rule is a genuine false positive, suppress the specific line with a // @mago-expect lint:&lt;rule-name&gt; comment directly above it rather than disabling the rule globally. Pull Requests Keep changes focused; unrelated formatting-only diffs make review harder. Add or update tests for any behavior change. Update the relevant page(s) under docs/v1/ when public API or configuration shape changes."
+                },
+                {
+                    "url": "/messagebus-event/v1/getting-started.html",
+                    "title": "Getting Started",
+                    "headings": [
+                        {
+                            "id": "_requirements",
+                            "title": "Requirements",
+                            "level": 2
+                        },
+                        {
+                            "id": "_installation",
+                            "title": "Installation",
+                            "level": 2
+                        },
+                        {
+                            "id": "_wiring",
+                            "title": "Wiring",
+                            "level": 2
+                        },
+                        {
+                            "id": "_registering_listeners",
+                            "title": "Registering Listeners",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Requirements PHP ~8.4.1 || ~8.5.0 webware/message-bus ^0.1.0 - not installed automatically by this package (it's a require-dev dependency here, used only by the test suite). Your application must require it directly. laminas/laminas-servicemanager ^4.0.0 phly/phly-event-dispatcher ^1.5.0 Installation composer require webware/messagebus-event webware/message-bus Wiring This package ships a Webware\\MessageBus\\Event\\ConfigProvider . Auto-registration is handled by the laminas/laminas-component-installer Composer plugin, which reads the extra.laminas.config-provider entry in composer.json ; plain laminas/laminas-config-aggregator only merges config arrays and does not register providers itself. To wire it manually, merge it with webware/message-bus 's own ConfigProvider when building your application config, then build a Laminas\\ServiceManager\\ServiceManager from the merged config: use Laminas\\ServiceManager\\ServiceManager; $config = []; foreach ( [ Webware\\MessageBus\\ConfigProvider::class, Webware\\MessageBus\\Event\\ConfigProvider::class, // ...your own config providers ] as $provider ) { $config = array_merge_recursive($config, (new $provider())()); } $container = new ServiceManager($config['dependencies']); $container-&gt;setService('config', $config); Once wired, resolving Webware\\MessageBus\\MessageBusInterface from the container gives you a bus whose default middleware pipeline dispatches CommandPreHandleEvent before a command handler runs, and CommandPostHandleEvent after it completes. Query events are not wired by default - see Usage Examples to enable them. Registering Listeners Listeners are configured under the listeners and listener_providers keys, read by Webware\\MessageBus\\Event\\Container\\ListenerProviderAggregateFactory : return [ 'listeners' =&gt; [ Webware\\MessageBus\\Event\\Command\\CommandPostHandleEvent::class =&gt; [ // a service id resolved from the container, or a plain callable/class-string MyListener::class, // a shape entry supporting an explicit pri"
+                },
+                {
+                    "url": "/messagebus-event/v1/index.html",
+                    "title": "Webware MessageBus Event",
+                    "headings": [
+                        {
+                            "id": "_documentation",
+                            "title": "Documentation",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Event integration for webware/message-bus , built on top of phly/phly-event-dispatcher (PSR-14). It adds pre/post \"handle\" events for both Command and Query messages, dispatched via middleware in the bus pipeline. Documentation Getting Started - installation and wiring. Usage Examples - listening for events, opting in to query events, custom events. API Reference - every public class, interface, and trait. Contributing - local setup, tests, and static analysis."
+                },
+                {
+                    "url": "/messagebus-event/v1/open-questions.html",
+                    "title": "Open Questions",
+                    "headings": [
+                        {
+                            "id": "_commandresultqueryresult_are_final_what_does_that_cost_us",
+                            "title": "`CommandResult`/`QueryResult` are `final`: what does that cost us?",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Design tradeoffs and unresolved questions worth revisiting. CommandResult / QueryResult are final : what does that cost us? webware/message-bus 's Command\\CommandResult and Query\\QueryResult are final readonly value objects. They can't be subclassed. Tradeoffs of that decision: Lost: No result-level event-awareness. CommandPostHandleMiddleware / QueryPostHandleMiddleware check $message instanceof EventAwareInterface on the result to optionally dispatch an extra domain event alongside the built-in *PostHandleEvent . Since the result classes can't be subclassed and don't implement EventAwareInterface themselves, this hook can never fire for a normalized result - any additional domain event must be dispatched manually from within the handler instead (see Usage Examples ). No handler-specific typed accessors on the result. The payload is just mixed $result . A subclass could otherwise expose something like getUserId(): int instead of forcing every consumer to unpack/cast the raw payload from getResult() . No polymorphic result types. Every result is structurally the same CommandResult / QueryResult , distinguished only by the shape of its mixed payload at runtime - not by type ( instanceof CreateUserResult isn't possible). No overriding behavior : getStatus() / getResult() / getCommand() are fixed implementations. Gained: Every result flowing through the bus is guaranteed to be the exact same normalized, immutable shape. Middleware, listeners, and any generic consumer never have to worry about a handler having subtly changed or extended the contract - consistency across the application is traded for per-handler expressiveness. Composition (implementing CommandResultInterface / QueryResultInterface directly and delegating to an internal CommandResult / QueryResult ) can recover some of the lost flexibility, but at the cost of writing a bespoke result class per handler - which defeats the normalization goal the final classes were introduced for. Current guidance (see Usag"
+                },
+                {
+                    "url": "/messagebus-event/v1/usage-examples.html",
+                    "title": "Usage Examples",
+                    "headings": [
+                        {
+                            "id": "_listening_for_command_events",
+                            "title": "Listening for Command events",
+                            "level": 2
+                        },
+                        {
+                            "id": "_ordering_listeners_by_priority",
+                            "title": "Ordering listeners by priority",
+                            "level": 2
+                        },
+                        {
+                            "id": "opting-in-to-query-events",
+                            "title": "Opting in to Query events",
+                            "level": 2
+                        },
+                        {
+                            "id": "dispatching-a-custom-event-alongside-the-result",
+                            "title": "Dispatching a custom event alongside the result",
+                            "level": 2
+                        },
+                        {
+                            "id": "_stopping_propagation",
+                            "title": "Stopping propagation",
+                            "level": 2
+                        }
+                    ],
+                    "text": "Listening for Command events The default pipeline (see ConfigProvider::getPipeline() ) dispatches: Command\\CommandPreHandleEvent - before the command's handler runs. Command\\CommandPostHandleEvent - after the handler returns a CommandResultInterface . Register a listener under the listeners config key, keyed by the event class: use Webware\\MessageBus\\Event\\Command\\CommandPostHandleEvent; use Webware\\MessageBus\\Event\\EventInterface; use Webware\\MessageBus\\Event\\ListenerInterface; final class LogCommandCompletion implements ListenerInterface { public function __invoke(EventInterface $event): void { if (! $event instanceof CommandPostHandleEvent) { return; } printf( \"Command %s completed with status: %s\\n\", $event-&gt;getCommand()::class, $event-&gt;getResult()-&gt;getStatus()-&gt;name, ); } } return [ 'listeners' =&gt; [ CommandPostHandleEvent::class =&gt; [ LogCommandCompletion::class, ], ], ]; ListenerProviderAggregateFactory resolves LogCommandCompletion from the container if it's registered there (e.g. as an invokable or via a factory); otherwise it's treated as a plain callable/class-string. Ordering listeners by priority Use the shape form ( ['listener' =&gt; ..., 'priority' =&gt; ...] ) when multiple listeners are attached to the same event and must run in a specific order. Higher priority values run first: return [ 'listeners' =&gt; [ CommandPostHandleEvent::class =&gt; [ ['listener' =&gt; AuditListener::class, 'priority' =&gt; 10], ['listener' =&gt; LogCommandCompletion::class, 'priority' =&gt; 0], ], ], ]; Opting in to Query events Middleware\\QueryPreHandleMiddleware and Middleware\\QueryPostHandleMiddleware are registered in the container by this package, but are not added to the default middleware_pipeline - only Command events are wired out of the box. Add them yourself, choosing priorities relative to your other middleware (e.g. webware/message-bus 's own MessageHandlerMiddleware , wired at priority 1 ): use Webware\\MessageBus\\ConfigProvider as BusProvide"
+                }
+            ]
+        }
+    ]
+}

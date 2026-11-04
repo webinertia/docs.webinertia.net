@@ -1,0 +1,20 @@
+{
+    "schemaVersion": 1,
+    "projects": [
+        {
+            "slug": "asciidoc-php",
+            "title": "asciidoc-php",
+            "index": "/asciidoc-php/search-index.json"
+        },
+        {
+            "slug": "message-bus",
+            "title": "message-bus",
+            "index": "/message-bus/search-index.json"
+        },
+        {
+            "slug": "messagebus-event",
+            "title": "messagebus-event",
+            "index": "/messagebus-event/search-index.json"
+        }
+    ]
+}

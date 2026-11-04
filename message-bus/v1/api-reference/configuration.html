@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-mode="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration &amp; Container Integration | message-bus | Webware Documentation</title>
+<link rel="canonical" href="https://docs.webinertia.net/message-bus/v1/api-reference/configuration.html">
+<link rel="icon" href="/assets/logo.a56b33.svg">
+<link rel="stylesheet" href="/assets/asciidoctor.426b47.css">
+<link rel="stylesheet" href="/assets/site.44458d.css">
+<link rel="stylesheet" href="/assets/accent.b7bf58.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script>
+(function () {
+  var stored = null;
+  try {
+    stored = window.localStorage.getItem('asciidoc-php-theme');
+  } catch (error) {
+    stored = null;
+  }
+  var mode = document.documentElement.getAttribute('data-theme-mode');
+  var theme;
+  if (stored === 'light' || stored === 'dark') {
+    theme = stored;
+  } else if (mode === 'light' || mode === 'dark') {
+    theme = mode;
+  } else {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<a class="site-brand" href="/"><img class="site-logo" src="/assets/logo.a56b33.svg" alt="Webware Documentation" width="34" height="34" decoding="async"></a>
+<p class="project-name">message-bus</p>
+<p class="version-label">v1</p>
+<nav class="project-switcher" aria-label="Projects" data-project-switcher>
+<p class="nav-label">Projects</p>
+<ul>
+<li class="project-item"><a href="/asciidoc-php/">asciidoc-php</a></li>
+<li class="project-item project-current"><a href="/message-bus/" aria-current="page">message-bus</a></li>
+<li class="project-item"><a href="/messagebus-event/">messagebus-event</a></li>
+</ul>
+</nav>
+<nav class="version-selector" aria-label="Versions" data-version-selector>
+<p class="nav-label">Versions</p>
+<ul>
+<li class="version-item version-latest"><a href="/message-bus/v2/api-reference/configuration.html">v2 <span class="version-flag">(latest)</span></a></li>
+<li class="version-item"><a href="/message-bus/v1/api-reference/configuration.html" aria-current="page">v1</a></li>
+</ul>
+</nav>
+<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">Toggle dark mode</button>
+<div class="site-search" data-search data-site-index="/search-index.json" data-project-index="/message-bus/search-index.json" data-project-slug="message-bus" data-version-label="v1" hidden>
+<label class="search-label" for="site-search-input">Search</label>
+<input class="search-input" id="site-search-input" type="search" autocomplete="off" spellcheck="false" data-search-input>
+<label class="search-scope-label" for="site-search-scope">Scope</label>
+<select class="search-scope" id="site-search-scope" data-search-scope>
+<option value="version">This version</option>
+<option value="project">All versions</option>
+<option value="site">All projects</option>
+</select>
+<ul class="search-results" data-search-results hidden></ul>
+<p class="search-status" data-search-status aria-live="polite"></p>
+</div>
+</header>
+<aside class="outdated-banner" aria-label="Version notice">
+<p>You are reading <strong>v1</strong>. The current version is <a href="/message-bus/v2/api-reference/configuration.html">v2</a>.</p>
+</aside>
+<div class="layout">
+<nav class="sidebar" aria-label="On this page">
+<ol class="toc-list">
+<li class="toc-level-2"><a href="#_configprovider">`ConfigProvider`</a></li>
+<li class="toc-level-3"><a href="#_mapping_a_commandquery_to_a_handler">Mapping a command/query to a handler</a></li>
+<li class="toc-level-3"><a href="#_adding_custom_middleware">Adding custom middleware</a></li>
+<li class="toc-level-3"><a href="#_dispatching_a_message">Dispatching a message</a></li>
+<li class="toc-level-2"><a href="#_containermessagebusfactory">`Container\MessageBusFactory`</a></li>
+<li class="toc-level-2"><a href="#_containermessagehandlerresolverfactory">`Container\MessageHandlerResolverFactory`</a></li>
+<li class="toc-level-2"><a href="#_containermiddlewarepipefactory">`Container\MiddlewarePipeFactory`</a></li>
+<li class="toc-level-2"><a href="#_containermessagehandlermiddlewarefactory">`Container\MessageHandlerMiddlewareFactory`</a></li>
+<li class="toc-level-2"><a href="#_functionscollection_mapper_factory">`functions\collection_mapper_factory()`</a></li>
+<li class="toc-level-2"><a href="#_functionspriority_queue_reducer_factory">`functions\priority_queue_reducer_factory()`</a></li>
+</ol>
+</nav>
+<main id="main">
+<article class="doc">
+<div class="sect1">
+<h2 id="_configprovider"><code>ConfigProvider</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Registered via <code>extra.laminas.config-provider</code> in composer.json for auto-discovery by
+<code>Laminas\ConfigAggregator</code>/Mezzio. Provides:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>getDependencies()</code>: the <code>aliases</code>/<code>factories</code>/<code>invokables</code> needed to wire up <code>MessageBus</code>,
+<code>MessageHandlerResolver</code>, <code>MiddlewarePipe</code>, and <code>MessageHandlerMiddleware</code> in a PSR-11 container.</p>
+</li>
+<li>
+<p><code>getCommandMap()</code> / <code>getQueryMap()</code>: empty by default; consuming applications extend this
+configuration (under the <code>command_map</code>/<code>query_map</code> keys) to map their own command/query classes to
+handler classes.</p>
+</li>
+<li>
+<p><code>getMiddleware()</code>: the default <code>middleware_pipeline</code> entry, registering
+<code>Middleware\MessageHandlerMiddleware</code> at <code>ConfigProvider::DEFAULT_PRIORITY</code> (1) so it runs last.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>All three sections are merged under the top-level <code>Webware\MessageBus\MessageBusInterface::class</code>
+config key.</p>
+</div>
+<div class="sect2">
+<h3 id="_mapping_a_commandquery_to_a_handler">Mapping a command/query to a handler</h3>
+<div class="paragraph">
+<p>Extend the <code>command_map</code>/<code>query_map</code> in your application's config and register the handler in the
+container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">use Webware\MessageBus\MessageBusInterface;
+use Webware\MessageBus\ConfigProvider;
+
+return [
+    'dependencies' =&gt; [
+        'factories' =&gt; [
+            App\Command\CreateUserHandler::class =&gt; App\Command\CreateUserHandlerFactory::class,
+        ],
+    ],
+    MessageBusInterface::class =&gt; [
+        ConfigProvider::COMMAND_MAP_KEY =&gt; [
+            App\Command\CreateUser::class =&gt; App\Command\CreateUserHandler::class,
+        ],
+    ],
+];</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>App\Command\CreateUser</code> must implement <code>Command\CommandInterface</code>, and
+<code>App\Command\CreateUserHandler</code> must implement <code>CommandHandlerInterface</code>. Queries follow the same
+pattern under <code>ConfigProvider::QUERY_MAP_KEY</code> with <code>Query\QueryInterface</code>/<code>QueryHandlerInterface</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_adding_custom_middleware">Adding custom middleware</h3>
+<div class="paragraph">
+<p>Register the middleware as a service, then add it to <code>middleware_pipeline</code> with a <code>priority</code>. Higher
+priority runs earlier; <code>MessageHandlerMiddleware</code> is registered at priority <code>1</code> so it runs last by
+default, give your middleware a higher priority to run before the handler is resolved:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">use Webware\MessageBus\ConfigProvider;
+
+return [
+    'dependencies' =&gt; [
+        'factories' =&gt; [
+            App\Middleware\LoggingMiddleware::class =&gt; App\Middleware\LoggingMiddlewareFactory::class,
+        ],
+    ],
+    MessageBusInterface::class =&gt; [
+        ConfigProvider::MIDDLEWARE_PIPELINE_KEY =&gt; [
+            [
+                'middleware' =&gt; App\Middleware\LoggingMiddleware::class,
+                'priority'   =&gt; 10,
+            ],
+        ],
+    ],
+];</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_dispatching_a_message">Dispatching a message</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">/** @var Psr\Container\ContainerInterface $container */
+$bus    = $container-&gt;get(MessageBusInterface::class);
+$result = $bus-&gt;handle(new App\Command\CreateUser('jane@example.com'));
+
+$result-&gt;getStatus(); // MessageStatus::Success or ::Failure
+$result-&gt;getResult(); // the value returned by CreateUserHandler</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_containermessagebusfactory"><code>Container\MessageBusFactory</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Builds a <code>MessageBus</code>, fetching the <code>MiddlewarePipelineInterface</code> service from the container. Throws
+<code>Exception\ServiceNotFoundException</code> if it's not registered.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_containermessagehandlerresolverfactory"><code>Container\MessageHandlerResolverFactory</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Builds a <code>MessageHandlerResolver</code>, injecting the container itself so it can be used later to fetch
+mapped handler services.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_containermiddlewarepipefactory"><code>Container\MiddlewarePipeFactory</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Builds a <code>MiddlewarePipe</code> and pipes in every middleware listed under the <code>middleware_pipeline</code>
+config key, ordered by <code>priority</code> (higher runs first; ties broken by declaration order). Middleware
+class-strings that aren't registered in the container are silently skipped.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_containermessagehandlermiddlewarefactory"><code>Container\MessageHandlerMiddlewareFactory</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Builds a <code>Middleware\MessageHandlerMiddleware</code>, injecting the container's
+<code>MessageHandlerResolverInterface</code> service.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_functionscollection_mapper_factory"><code>functions\collection_mapper_factory()</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Returns a callable that validates each <code>middleware_pipeline</code> entry contains the given key (e.g.
+<code>'middleware'</code>), throwing <code>Exception\InvalidConfigurationException</code> otherwise. Used by
+<code>MiddlewarePipeFactory</code> when mapping raw config entries.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_functionspriority_queue_reducer_factory"><code>functions\priority_queue_reducer_factory()</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Returns an <code>array_reduce()</code> callback that inserts middleware config entries into an <code>SplPriorityQueue</code>,
+keyed by their <code>priority</code> (defaulting to 1) with a descending tie-break counter to preserve declaration
+order for equal priorities.</p>
+</div>
+</div>
+</div>
+</article>
+</main>
+</div>
+<footer class="site-footer">
+<a class="source-link" href="https://github.com/webinertia/message-bus/blob/2.0.x/docs/v1/api-reference/configuration.adoc" rel="noopener">Edit this page</a>
+<p class="footer-project">message-bus</p>
+<p class="footer-version">v1</p>
+</footer>
+<script src="/assets/theme.42bf6e.js" defer></script>
+<script src="/assets/nav.1868c9.js" defer></script>
+<script src="/assets/search-core.db0f42.js" defer></script>
+<script src="/assets/search.2912b7.js" defer></script>
+</body>
+</html>

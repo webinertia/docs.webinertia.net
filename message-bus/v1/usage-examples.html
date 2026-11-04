@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-mode="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Usage Examples | message-bus | Webware Documentation</title>
+<link rel="canonical" href="https://docs.webinertia.net/message-bus/v1/usage-examples.html">
+<link rel="icon" href="/assets/logo.a56b33.svg">
+<link rel="stylesheet" href="/assets/asciidoctor.426b47.css">
+<link rel="stylesheet" href="/assets/site.44458d.css">
+<link rel="stylesheet" href="/assets/accent.b7bf58.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script>
+(function () {
+  var stored = null;
+  try {
+    stored = window.localStorage.getItem('asciidoc-php-theme');
+  } catch (error) {
+    stored = null;
+  }
+  var mode = document.documentElement.getAttribute('data-theme-mode');
+  var theme;
+  if (stored === 'light' || stored === 'dark') {
+    theme = stored;
+  } else if (mode === 'light' || mode === 'dark') {
+    theme = mode;
+  } else {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<a class="site-brand" href="/"><img class="site-logo" src="/assets/logo.a56b33.svg" alt="Webware Documentation" width="34" height="34" decoding="async"></a>
+<p class="project-name">message-bus</p>
+<p class="version-label">v1</p>
+<nav class="project-switcher" aria-label="Projects" data-project-switcher>
+<p class="nav-label">Projects</p>
+<ul>
+<li class="project-item"><a href="/asciidoc-php/">asciidoc-php</a></li>
+<li class="project-item project-current"><a href="/message-bus/" aria-current="page">message-bus</a></li>
+<li class="project-item"><a href="/messagebus-event/">messagebus-event</a></li>
+</ul>
+</nav>
+<nav class="version-selector" aria-label="Versions" data-version-selector>
+<p class="nav-label">Versions</p>
+<ul>
+<li class="version-item version-latest"><a href="/message-bus/v2/usage-examples.html">v2 <span class="version-flag">(latest)</span></a></li>
+<li class="version-item"><a href="/message-bus/v1/usage-examples.html" aria-current="page">v1</a></li>
+</ul>
+</nav>
+<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">Toggle dark mode</button>
+<div class="site-search" data-search data-site-index="/search-index.json" data-project-index="/message-bus/search-index.json" data-project-slug="message-bus" data-version-label="v1" hidden>
+<label class="search-label" for="site-search-input">Search</label>
+<input class="search-input" id="site-search-input" type="search" autocomplete="off" spellcheck="false" data-search-input>
+<label class="search-scope-label" for="site-search-scope">Scope</label>
+<select class="search-scope" id="site-search-scope" data-search-scope>
+<option value="version">This version</option>
+<option value="project">All versions</option>
+<option value="site">All projects</option>
+</select>
+<ul class="search-results" data-search-results hidden></ul>
+<p class="search-status" data-search-status aria-live="polite"></p>
+</div>
+</header>
+<aside class="outdated-banner" aria-label="Version notice">
+<p>You are reading <strong>v1</strong>. The current version is <a href="/message-bus/v2/usage-examples.html">v2</a>.</p>
+</aside>
+<div class="layout">
+<nav class="sidebar" aria-label="On this page">
+<ol class="toc-list">
+<li class="toc-level-2"><a href="#defining-a-command-and-its-handler">Defining a command and its handler</a></li>
+<li class="toc-level-2"><a href="#_mapping_the_command_to_its_handler">Mapping the command to its handler</a></li>
+<li class="toc-level-2"><a href="#_dispatching">Dispatching</a></li>
+<li class="toc-level-2"><a href="#writing-custom-middleware">Writing custom middleware</a></li>
+</ol>
+</nav>
+<main id="main">
+<article class="doc">
+<div class="sect1">
+<h2 id="defining-a-command-and-its-handler">Defining a command and its handler</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A command is any class implementing <code>Command\CommandInterface</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">namespace App\Command;
+
+use Webware\MessageBus\Command\CommandInterface;
+
+final readonly class CreateUser implements CommandInterface
+{
+    public function __construct(
+        public string $email,
+    ) {}
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>CommandHandlerInterface::handle()</code> is typed to the broad <code>MessageInterface</code>, but parameter types are
+contravariant, an implementation is free to widen a parameter type, just never narrow it. Declaring
+the parameter as <code>MessageInterface|CommandInterface</code> is still a valid override (the union includes
+<code>MessageInterface</code>, so it's just as wide as the interface requires), and it tells static analysis tools
+(and readers) that this handler only ever receives commands, without any runtime cost:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">namespace App\Command;
+
+use Override;
+use Psl\Type;
+use Webware\MessageBus\Command\CommandInterface;
+use Webware\MessageBus\Command\CommandResult;
+use Webware\MessageBus\CommandHandlerInterface;
+use Webware\MessageBus\MessageInterface;
+use Webware\MessageBus\MessageStatus;
+use Webware\MessageBus\ResultInterface;
+
+final readonly class CreateUserHandler implements CommandHandlerInterface
+{
+    #[Override]
+    public function handle(MessageInterface|CommandInterface $message): ResultInterface
+    {
+        // narrow further, from "some command" to this specific command
+        $command = Type\instance_of(CreateUser::class)-&gt;assert($message);
+
+        // ...create the user...
+        $userId = 42;
+
+        return new CommandResult($command, MessageStatus::Success, $userId);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The union only buys you the <code>CommandInterface</code> half of the contract at the type level (useful if you
+need something like <code>NamedCommandInterface::getName()</code> before knowing the concrete class); you still
+need <code>Type\instance_of()</code> (or an <code>instanceof</code> check) to narrow to <code>CreateUser</code> itself, since nothing
+else guarantees that a given <code>CommandInterface</code> is the one this handler expects.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mapping_the_command_to_its_handler">Mapping the command to its handler</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Extend the <code>command_map</code> in your application config and register the handler with your container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">use Webware\MessageBus\ConfigProvider;
+use Webware\MessageBus\MessageBusInterface;
+
+return [
+    'dependencies' =&gt; [
+        'factories' =&gt; [
+            App\Command\CreateUserHandler::class =&gt; App\Command\CreateUserHandlerFactory::class,
+        ],
+    ],
+    MessageBusInterface::class =&gt; [
+        ConfigProvider::COMMAND_MAP_KEY =&gt; [
+            App\Command\CreateUser::class =&gt; App\Command\CreateUserHandler::class,
+        ],
+    ],
+];</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Queries follow the exact same shape under <code>ConfigProvider::QUERY_MAP_KEY</code>, using
+<code>Query\QueryInterface</code>/<code>QueryHandlerInterface</code> and <code>Query\QueryResult</code> instead.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dispatching">Dispatching</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">/** @var Psr\Container\ContainerInterface $container */
+$bus = $container-&gt;get(MessageBusInterface::class);
+
+$result = $bus-&gt;handle(new App\Command\CreateUser('jane@example.com'));
+
+$result-&gt;getStatus(); // MessageStatus::Success or ::Failure
+$result-&gt;getResult(); // 42, in this example</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="writing-custom-middleware">Writing custom middleware</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Middleware implements <code>MiddlewareInterface</code> and decides whether/when to call the next handler in the
+pipeline:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">namespace App\Middleware;
+
+use Override;
+use Webware\MessageBus\MessageHandlerInterface;
+use Webware\MessageBus\MessageInterface;
+use Webware\MessageBus\MiddlewareInterface;
+use Webware\MessageBus\ResultInterface;
+
+final readonly class LoggingMiddleware implements MiddlewareInterface
+{
+    public function __construct(
+        private App\Logging\LoggerInterface $logger,
+    ) {}
+
+    #[Override]
+    public function process(
+        MessageInterface $message,
+        MessageHandlerInterface $handler,
+    ): ResultInterface {
+        $this-&gt;logger-&gt;info('Dispatching ' . $message::class);
+
+        return $handler-&gt;handle($message);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Register it as a service and add it to <code>middleware_pipeline</code> with a <code>priority</code>. Higher priority runs
+earlier; <code>Middleware\MessageHandlerMiddleware</code> is registered at priority <code>1</code> (<code>ConfigProvider::DEFAULT_PRIORITY</code>)
+so it runs last by default, give your middleware a higher priority to run before the handler is
+resolved:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">use Webware\MessageBus\ConfigProvider;
+use Webware\MessageBus\MessageBusInterface;
+
+return [
+    'dependencies' =&gt; [
+        'factories' =&gt; [
+            App\Middleware\LoggingMiddleware::class =&gt; App\Middleware\LoggingMiddlewareFactory::class,
+        ],
+    ],
+    MessageBusInterface::class =&gt; [
+        ConfigProvider::MIDDLEWARE_PIPELINE_KEY =&gt; [
+            [
+                'middleware' =&gt; App\Middleware\LoggingMiddleware::class,
+                'priority'   =&gt; 10,
+            ],
+        ],
+    ],
+];</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Middleware registered without a <code>priority</code> defaults to <code>1</code>; entries sharing the same priority run in
+the order they were declared. Middleware class-strings that aren't registered in the container are
+silently skipped when the pipeline is built (see <a href="/message-bus/v1/api-reference/configuration.html">Configuration</a>).</p>
+</div>
+<div class="paragraph">
+<p>See <a href="/message-bus/v1/flow-charts.html#custom-middleware-example">Execution Flow</a> for a diagram of how this
+<code>LoggingMiddleware</code> example fits into the pipeline, and why it never sees the <code>CommandResult</code>.</p>
+</div>
+</div>
+</div>
+</article>
+</main>
+</div>
+<footer class="site-footer">
+<a class="source-link" href="https://github.com/webinertia/message-bus/blob/2.0.x/docs/v1/usage-examples.adoc" rel="noopener">Edit this page</a>
+<p class="footer-project">message-bus</p>
+<p class="footer-version">v1</p>
+</footer>
+<script src="/assets/theme.42bf6e.js" defer></script>
+<script src="/assets/nav.1868c9.js" defer></script>
+<script src="/assets/search-core.db0f42.js" defer></script>
+<script src="/assets/search.2912b7.js" defer></script>
+</body>
+</html>

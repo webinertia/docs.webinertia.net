@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-mode="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Usage Examples | messagebus-event | Webware Documentation</title>
+<link rel="canonical" href="https://docs.webinertia.net/messagebus-event/v2/usage-examples.html">
+<link rel="icon" href="/assets/logo.a56b33.svg">
+<link rel="stylesheet" href="/assets/asciidoctor.426b47.css">
+<link rel="stylesheet" href="/assets/site.44458d.css">
+<link rel="stylesheet" href="/assets/accent.4e16a5.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script>
+(function () {
+  var stored = null;
+  try {
+    stored = window.localStorage.getItem('asciidoc-php-theme');
+  } catch (error) {
+    stored = null;
+  }
+  var mode = document.documentElement.getAttribute('data-theme-mode');
+  var theme;
+  if (stored === 'light' || stored === 'dark') {
+    theme = stored;
+  } else if (mode === 'light' || mode === 'dark') {
+    theme = mode;
+  } else {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<a class="site-brand" href="/"><img class="site-logo" src="/assets/logo.a56b33.svg" alt="Webware Documentation" width="34" height="34" decoding="async"></a>
+<p class="project-name">messagebus-event</p>
+<p class="version-label">v2</p>
+<nav class="project-switcher" aria-label="Projects" data-project-switcher>
+<p class="nav-label">Projects</p>
+<ul>
+<li class="project-item"><a href="/asciidoc-php/">asciidoc-php</a></li>
+<li class="project-item"><a href="/message-bus/">message-bus</a></li>
+<li class="project-item project-current"><a href="/messagebus-event/" aria-current="page">messagebus-event</a></li>
+</ul>
+</nav>
+<nav class="version-selector" aria-label="Versions" data-version-selector>
+<p class="nav-label">Versions</p>
+<ul>
+<li class="version-item version-latest"><a href="/messagebus-event/v2/usage-examples.html" aria-current="page">v2 <span class="version-flag">(latest)</span></a></li>
+<li class="version-item"><a href="/messagebus-event/v1/usage-examples.html">v1</a></li>
+</ul>
+</nav>
+<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">Toggle dark mode</button>
+<div class="site-search" data-search data-site-index="/search-index.json" data-project-index="/messagebus-event/search-index.json" data-project-slug="messagebus-event" data-version-label="v2" hidden>
+<label class="search-label" for="site-search-input">Search</label>
+<input class="search-input" id="site-search-input" type="search" autocomplete="off" spellcheck="false" data-search-input>
+<label class="search-scope-label" for="site-search-scope">Scope</label>
+<select class="search-scope" id="site-search-scope" data-search-scope>
+<option value="version">This version</option>
+<option value="project">All versions</option>
+<option value="site">All projects</option>
+</select>
+<ul class="search-results" data-search-results hidden></ul>
+<p class="search-status" data-search-status aria-live="polite"></p>
+</div>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="On this page">
+<ol class="toc-list">
+<li class="toc-level-2"><a href="#_listening_for_command_events">Listening for Command events</a></li>
+<li class="toc-level-2"><a href="#_ordering_listeners_by_priority">Ordering listeners by priority</a></li>
+<li class="toc-level-2"><a href="#opting-in-to-query-events">Opting in to Query events</a></li>
+<li class="toc-level-2"><a href="#dispatching-a-custom-event-alongside-the-result">Dispatching a custom event alongside the result</a></li>
+<li class="toc-level-2"><a href="#_stopping_propagation">Stopping propagation</a></li>
+</ol>
+</nav>
+<main id="main">
+<article class="doc">
+<div class="sect1">
+<h2 id="_listening_for_command_events">Listening for Command events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The default pipeline (see <a href="/messagebus-event/v2/api-reference.html#configprovider"><code>ConfigProvider::getPipeline()</code></a>) dispatches:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>Command\CommandPreHandleEvent</code> - before the command's handler runs.</p>
+</li>
+<li>
+<p><code>Command\CommandPostHandleEvent</code> - after the handler returns a <code>CommandResultInterface</code>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Register a listener under the <code>listeners</code> config key, keyed by the event class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">use Webware\MessageBus\Event\Command\CommandPostHandleEvent;
+use Webware\MessageBus\Event\EventInterface;
+use Webware\MessageBus\Event\ListenerInterface;
+
+final class LogCommandCompletion implements ListenerInterface
+{
+    public function __invoke(EventInterface $event): void
+    {
+        if (! $event instanceof CommandPostHandleEvent) {
+            return;
+        }
+
+        printf(
+            "Command %s completed with status: %s\n",
+            $event-&gt;getCommand()::class,
+            $event-&gt;getResult()-&gt;getStatus()-&gt;name,
+        );
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">return [
+    'listeners' =&gt; [
+        CommandPostHandleEvent::class =&gt; [
+            LogCommandCompletion::class,
+        ],
+    ],
+];</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>ListenerProviderAggregateFactory</code> resolves <code>LogCommandCompletion</code> from the container if it's registered
+there (e.g. as an invokable or via a factory); otherwise it's treated as a plain callable/class-string.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ordering_listeners_by_priority">Ordering listeners by priority</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use the shape form (<code>['listener' =&gt; ..., 'priority' =&gt; ...]</code>) when multiple listeners are attached to the
+same event and must run in a specific order. Higher priority values run first:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">return [
+    'listeners' =&gt; [
+        CommandPostHandleEvent::class =&gt; [
+            ['listener' =&gt; AuditListener::class, 'priority' =&gt; 10],
+            ['listener' =&gt; LogCommandCompletion::class, 'priority' =&gt; 0],
+        ],
+    ],
+];</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="opting-in-to-query-events">Opting in to Query events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>Middleware\QueryPreHandleMiddleware</code> and <code>Middleware\QueryPostHandleMiddleware</code> are registered in the
+container by this package, but are <strong>not</strong> added to the default <code>middleware_pipeline</code> - only Command events
+are wired out of the box. Add them yourself, choosing priorities relative to your other middleware (e.g.
+<code>webware/message-bus</code>'s own <code>MessageHandlerMiddleware</code>, wired at priority <code>1</code>):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">use Webware\MessageBus\ConfigProvider as BusProvider;
+use Webware\MessageBus\Event\Middleware\QueryPostHandleMiddleware;
+use Webware\MessageBus\Event\Middleware\QueryPreHandleMiddleware;
+use Webware\MessageBus\MessageBusInterface;
+
+return [
+    MessageBusInterface::class =&gt; [
+        BusProvider::MIDDLEWARE_PIPELINE_KEY =&gt; [
+            ['middleware' =&gt; QueryPreHandleMiddleware::class, 'priority' =&gt; 100],
+            ['middleware' =&gt; QueryPostHandleMiddleware::class, 'priority' =&gt; -100],
+        ],
+    ],
+];</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Merging this config on top of the package's own <code>ConfigProvider</code> output (later providers win when merged
+with <code>array_merge_recursive</code>) adds Query events alongside the default Command ones.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dispatching-a-custom-event-alongside-the-result">Dispatching a custom event alongside the result</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Both <code>CommandPostHandleMiddleware</code> and <code>QueryPostHandleMiddleware</code> also check whether the result implements
+<code>EventAwareInterface</code>; if so, and an event has been attached to it, that event is dispatched too - in
+addition to the built-in <code>*PostHandleEvent</code>.</p>
+</div>
+<div class="paragraph">
+<p>Always return the <code>CommandResult</code>/<code>QueryResult</code> value objects provided by <code>webware/message-bus</code> from your
+handlers - don't write a custom result class. Those classes are <code>final</code> precisely so results stay
+normalized and consistent across the application. Neither implements <code>EventAwareInterface</code>, so this hook
+simply doesn't apply to them; if a handler needs to dispatch an additional domain event, dispatch it
+directly from the handler using the <code>EventDispatcherInterface</code> instead of attaching it to the result:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">use Psr\EventDispatcher\EventDispatcherInterface;
+use Webware\MessageBus\Command\CommandResult;
+use Webware\MessageBus\CommandHandlerInterface;
+use Webware\MessageBus\Event\Event;
+
+final class CreateUserHandler implements CommandHandlerInterface
+{
+    public function __construct(
+        private readonly EventDispatcherInterface $eventDispatcher,
+    ) {}
+
+    public function handle(CreateUser $command): CommandResult
+    {
+        $userId = /* ... create the user ... */;
+
+        $this-&gt;eventDispatcher-&gt;dispatch(new Event(name: 'user.created', target: $command, params: ['id' =&gt; $userId]));
+
+        return new CommandResult($command, $status, $userId);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that in <code>webware/message-bus</code> v2, handlers must implement the (empty marker) <code>CommandHandlerInterface</code>
+or <code>QueryHandlerInterface</code>, and the invoked method is resolved via a <code>StrategyInterface</code> - <code>handle()</code> with
+the default <code>HandleStrategy</code>, or a method named after the message's short class name with
+<code>ClassnameStrategy</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_stopping_propagation">Stopping propagation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>Event</code> implements <code>EventPropagationInterface</code> via <code>EventPropagationTrait</code>. A listener can stop later
+listeners for the same event from running:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-php hljs" data-lang="php">use Webware\MessageBus\Event\EventInterface;
+use Webware\MessageBus\Event\EventPropagationInterface;
+use Webware\MessageBus\Event\ListenerInterface;
+
+final class HaltOnError implements ListenerInterface
+{
+    public function __invoke(EventInterface $event): void
+    {
+        if ($event instanceof EventPropagationInterface &amp;&amp; /* some condition */ false) {
+            $event-&gt;stopPropagation();
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that <code>phly/phly-event-dispatcher</code>'s <code>EventDispatcher</code> must check <code>isPropagationStopped()</code> between
+listener invocations for this to have an effect - see that package's own documentation for details.</p>
+</div>
+</div>
+</div>
+</article>
+</main>
+</div>
+<footer class="site-footer">
+<a class="source-link" href="https://github.com/webinertia/messagebus-event/blob/2.0.x/docs/v2/usage-examples.adoc" rel="noopener">Edit this page</a>
+<p class="footer-project">messagebus-event</p>
+<p class="footer-version">v2</p>
+</footer>
+<script src="/assets/theme.42bf6e.js" defer></script>
+<script src="/assets/nav.1868c9.js" defer></script>
+<script src="/assets/search-core.db0f42.js" defer></script>
+<script src="/assets/search.2912b7.js" defer></script>
+</body>
+</html>
