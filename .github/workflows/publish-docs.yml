@@ -95,7 +95,7 @@ jobs:
         # This tag is the pin, not a moving branch. A release tag must carry
         # action.yml or there is no action definition to run, so advance this ref
         # deliberately to a chosen release rather than tracking a branch.
-        uses: webinertia/asciidoc-php-multi-repo@1.0.0-alpha.4
+        uses: webinertia/asciidoc-php-multi-repo@1.0.0-alpha.5
         with:
           config: site.json
           output: ${{ env.SITE_OUTPUT }}
